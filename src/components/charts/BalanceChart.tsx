@@ -1,31 +1,22 @@
 import React from 'react';
 import { Card, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Payment } from '../../types';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import './Charts.css';
 
 interface BalanceChartProps {
     paymentScheduleData: any[];
-    loanPayments: Payment[];
-    loan: {
-        minimumPayment?: number;
-    };
 }
 
 export const BalanceChart: React.FC<BalanceChartProps> = ({
-    paymentScheduleData,
-    loanPayments,
-    loan
+    paymentScheduleData
 }) => {
     return (
         <Card
             title={
                 <span>
                     Loan Balance Over Time
-                    <Tooltip title={
-                        "Shows your actual loan balance (blue line) vs projected balance (gray dashed line) and actual payments made (green dashed line). The actual balance reflects all payments you've made."
-                    }>
+                    <Tooltip title="Shows your loan balance over time. Uses actual payments when made, otherwise uses scheduled payments.">
                         <QuestionCircleOutlined className="field-tooltip-icon" />
                     </Tooltip>
                 </span>
@@ -33,87 +24,76 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
             className="chart-card"
         >
             <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={paymentScheduleData}>
+                <LineChart
+                    data={paymentScheduleData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                         dataKey="month"
                         label={{ value: 'Months Since Loan Start', position: 'insideBottom', offset: -5 }}
                     />
                     <YAxis
-                        yAxisId="balance"
                         label={{ value: 'Balance ($)', angle: -90, position: 'insideLeft' }}
-                        tickFormatter={(value) => {
-                            if (value >= 1000000) {
-                                return `$${(value / 1000000).toFixed(1)}M`;
-                            } else if (value >= 1000) {
-                                return `$${(value / 1000).toFixed(0)}k`;
-                            } else {
-                                return `$${value}`;
-                            }
-                        }}
-                    />
-                    <YAxis
-                        yAxisId="payments"
-                        orientation="right"
-                        label={{ value: 'Payment Amount ($)', angle: 90, position: 'insideRight' }}
-                        tickFormatter={(value) => {
-                            if (value >= 1000000) {
-                                return `$${(value / 1000000).toFixed(1)}M`;
-                            } else if (value >= 1000) {
-                                return `$${(value / 1000).toFixed(0)}k`;
-                            } else {
-                                return `$${value}`;
-                            }
-                        }}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
                     />
                     <RechartsTooltip
-                        formatter={(value, name) => [
-                            `$${Number(value).toLocaleString()}`,
-                            name === 'actualBalance' ? 'Actual Balance' :
-                                name === 'projectedBalance' ? 'Projected Balance' :
-                                    name === 'actualPayment' ? 'Actual Payment Made' : 'Unknown'
-                        ]}
+                        formatter={(value) => {
+                            return [
+                                `$${Number(value).toLocaleString()}`,
+                                'Ending Balance'
+                            ];
+                        }}
                         labelFormatter={(month) => `Month ${month}`}
+                        content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                    <div style={{
+                                        background: 'white',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px',
+                                        padding: '12px',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                    }}>
+                                        <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>
+                                            Month {label}
+                                        </p>
+                                        <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                            <strong>Starting Balance:</strong> ${data.startingBalance.toLocaleString()}
+                                        </p>
+                                        <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                            <strong>Payment Made:</strong> ${data.paymentUsed.toLocaleString()}
+                                            {data.totalPayments > 0 && data.totalPayments !== data.paymentUsed && (
+                                                <span style={{ color: '#52c41a', marginLeft: '8px' }}>
+                                                    (Actual: ${data.totalPayments.toLocaleString()})
+                                                </span>
+                                            )}
+                                            {data.totalPayments === 0 && data.scheduledPayment > 0 && (
+                                                <span style={{ color: '#8c8c8c', marginLeft: '8px' }}>
+                                                    (Scheduled: ${data.scheduledPayment.toLocaleString()})
+                                                </span>
+                                            )}
+                                        </p>
+                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#fa8c16' }}>
+                                            <strong>Interest Paid:</strong> ${data.totalInterest.toLocaleString()}
+                                        </p>
+                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#1890ff' }}>
+                                            <strong>Ending Balance:</strong> ${data.balance.toLocaleString()}
+                                        </p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        }}
                     />
-                    <Legend />
-
-                    {/* Actual balance line (with payments applied) */}
                     <Line
-                        yAxisId="balance"
                         type="monotone"
-                        dataKey="actualBalance"
+                        dataKey="balance"
                         stroke="#1890ff"
                         strokeWidth={3}
-                        name="Actual Balance"
                         dot={{ fill: '#1890ff', strokeWidth: 2, r: 4 }}
                     />
-
-                    {/* Projected balance line (without actual payments) */}
-                    <Line
-                        yAxisId="balance"
-                        type="monotone"
-                        dataKey="projectedBalance"
-                        stroke="#d9d9d9"
-                        strokeWidth={2}
-                        strokeDasharray="3 3"
-                        name="Projected Balance"
-                        dot={{ fill: '#d9d9d9', strokeWidth: 1, r: 3 }}
-                    />
-
-                    {/* Actual payments */}
-                    {loanPayments.length > 0 && (
-                        <Line
-                            yAxisId="payments"
-                            type="monotone"
-                            dataKey="actualPayment"
-                            stroke="#52c41a"
-                            strokeWidth={2}
-                            strokeDasharray="5 5"
-                            name="Actual Payments"
-                            dot={{ fill: '#52c41a', strokeWidth: 2, r: 3 }}
-                            connectNulls={false}
-                        />
-                    )}
                 </LineChart>
             </ResponsiveContainer>
         </Card>

@@ -10,6 +10,7 @@ import {
 } from './index';
 import { BalanceChart, PieChart, OneTimePaymentChart } from '../charts';
 import { useAppSelector } from '../../hooks/redux';
+import { usePaymentSchedule, useActualLoanStats, useChartData } from '../../hooks';
 import { getPaymentsForLoan } from '../../utils/dataUtils';
 
 interface LoanVisualizerProps {
@@ -50,123 +51,15 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
         };
     }, [loan]);
 
-    // Calculate actual loan statistics based on payments made
-    const actualLoanStats = useMemo(() => {
-        const totalPaid = loanPayments.reduce((sum, payment) => sum + payment.amount, 0);
-        const remainingBalance = Math.max(0, loan.principal - totalPaid);
+    // Use hooks for calculations
+    const actualLoanStats = useActualLoanStats(loan, loanPayments);
+    const paymentScheduleData = usePaymentSchedule(loan, loanPayments);
 
-        // Calculate interest paid (simplified - assumes payments go to interest first)
-        const monthlyRate = loan.interestRate / 100 / 12;
-        let interestPaid = 0;
-        let balance = loan.principal;
-
-        loanPayments.forEach(payment => {
-            const interestOwed = balance * monthlyRate;
-            const principalPayment = Math.max(0, payment.amount - interestOwed);
-            interestPaid += Math.min(interestOwed, payment.amount);
-            balance = Math.max(0, balance - principalPayment);
-        });
-
-        const principalPaid = totalPaid - interestPaid;
-
-        return {
-            totalPaid,
-            principalPaid,
-            interestPaid,
-            remainingBalance,
-        };
-    }, [loan, loanPayments]);
-
-    // Generate payment schedule data
-    const paymentScheduleData = useMemo(() => {
-        const data = [];
-        const monthlyRate = loan.interestRate / 100 / 12;
-        let projectedBalance = loan.principal;
-        let actualBalance = loan.principal;
-        const maxMonths = loan.termMonths > 0 ? loan.termMonths : 120; // Cap at 10 years for minimum payment loans
-        const loanStartDate = new Date(loan.startDate);
-
-        // Group payments by month for easier lookup
-        const paymentsByMonth = new Map();
-        loanPayments.forEach(payment => {
-            const paymentDate = new Date(payment.paymentDate);
-            const monthsDiff = (paymentDate.getFullYear() - loanStartDate.getFullYear()) * 12 +
-                (paymentDate.getMonth() - loanStartDate.getMonth());
-
-            if (monthsDiff >= 0) {
-                if (!paymentsByMonth.has(monthsDiff)) {
-                    paymentsByMonth.set(monthsDiff, []);
-                }
-                paymentsByMonth.get(monthsDiff).push(payment);
-            }
-        });
-
-        for (let month = 0; month <= maxMonths; month++) {
-            if (month === 0) {
-                data.push({
-                    month,
-                    balance: loan.principal,
-                    actualPayment: null,
-                    actualBalance: loan.principal,
-                    projectedBalance: loan.principal,
-                });
-                continue;
-            }
-
-            // Calculate projected balance (what it would be without actual payments)
-            if (loan.minimumPayment) {
-                const interestPayment = projectedBalance * monthlyRate;
-                const principalPayment = Math.max(0, loan.minimumPayment - interestPayment);
-                projectedBalance = Math.max(0, projectedBalance - principalPayment);
-            } else if (loan.termMonths > 0) {
-                const interestPayment = projectedBalance * monthlyRate;
-                const principalPayment = loanDetails.monthlyPayment - interestPayment;
-                projectedBalance = Math.max(0, projectedBalance - principalPayment);
-            }
-
-            // Get actual payments for this month
-            const monthPayments = paymentsByMonth.get(month) || [];
-            const actualPayment = monthPayments.length > 0 ?
-                monthPayments.reduce((sum, payment) => sum + payment.amount, 0) : null;
-
-            // Calculate actual balance (accounting for actual payments)
-            if (actualPayment && actualPayment > 0) {
-                // Apply actual payment to reduce balance
-                const interestOwed = actualBalance * monthlyRate;
-                const principalPayment = Math.max(0, actualPayment - interestOwed);
-                actualBalance = Math.max(0, actualBalance - principalPayment);
-            } else if (month > 0) {
-                // If no actual payment, apply projected payment logic
-                if (loan.minimumPayment) {
-                    const interestPayment = actualBalance * monthlyRate;
-                    const principalPayment = Math.max(0, loan.minimumPayment - interestPayment);
-                    actualBalance = Math.max(0, actualBalance - principalPayment);
-                } else if (loan.termMonths > 0) {
-                    const interestPayment = actualBalance * monthlyRate;
-                    const principalPayment = loanDetails.monthlyPayment - interestPayment;
-                    actualBalance = Math.max(0, actualBalance - principalPayment);
-                }
-            }
-
-            data.push({
-                month,
-                balance: actualBalance, // Use actual balance for the main line
-                actualPayment,
-                actualBalance,
-                projectedBalance,
-            });
-
-            if (actualBalance <= 0) break;
-        }
-
-        return data;
-    }, [loan, loanDetails, loanPayments]);
-
-    // Prepare chart data
-    const totalCostData = [
-        { name: 'Principal', value: loan.principal, color: '#1890ff' },
-        { name: 'Total Interest', value: Math.max(loanDetails.totalInterest, 1), color: '#ff4d4f' },
-    ];
+    // Use chart data hook
+    const { totalCostData, oneTimePaymentData } = useChartData({
+        loan,
+        actualLoanStats
+    });
 
     return (
         <div className="loan-visualizer">
@@ -207,8 +100,6 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                         <Col xs={24}>
                             <BalanceChart
                                 paymentScheduleData={paymentScheduleData}
-                                loanPayments={loanPayments}
-                                loan={loan}
                             />
                         </Col>
                     </Row>

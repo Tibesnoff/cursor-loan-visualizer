@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, Col, Card, Statistic, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Payment } from '../../types';
+import { useAdditionalSpentOverMinimum, useLastPaymentBreakdown } from '../../hooks';
 
 interface PaymentStatisticsCardsProps {
     loanPayments: Payment[];
@@ -29,44 +30,17 @@ export const PaymentStatisticsCards: React.FC<PaymentStatisticsCardsProps> = ({
         return null;
     }
 
-    // Get the most recent payment
-    const lastPayment = loanPayments.length > 0
-        ? loanPayments.sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())[0]
-        : null;
+    // Use hooks for calculations
+    const additionalSpentOverMinimum = useAdditionalSpentOverMinimum({
+        loan,
+        loanPayments,
+        monthlyPayment: loanDetails.monthlyPayment
+    });
 
-    // Calculate payment breakdown for the last payment
-    const getLastPaymentBreakdown = () => {
-        if (!lastPayment) return null;
-
-        // Calculate what the balance was before this payment
-        const paymentsBeforeLast = loanPayments
-            .filter(p => new Date(p.paymentDate) < new Date(lastPayment.paymentDate))
-            .sort((a, b) => new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime());
-
-        let balanceBeforePayment = loan.principal;
-        const monthlyRate = loan.interestRate / 100 / 12;
-
-        // Calculate balance up to the last payment
-        paymentsBeforeLast.forEach(payment => {
-            const interestOwed = balanceBeforePayment * monthlyRate;
-            const principalPayment = Math.max(0, payment.amount - interestOwed);
-            balanceBeforePayment = Math.max(0, balanceBeforePayment - principalPayment);
-        });
-
-        // Calculate breakdown for the last payment
-        const interestOwed = balanceBeforePayment * monthlyRate;
-        const principalPayment = Math.max(0, lastPayment.amount - interestOwed);
-        const balanceAfterPayment = Math.max(0, balanceBeforePayment - principalPayment);
-
-        return {
-            balanceBefore: balanceBeforePayment,
-            balanceAfter: balanceAfterPayment,
-            interestPaid: Math.min(interestOwed, lastPayment.amount),
-            principalPaid: principalPayment
-        };
-    };
-
-    const lastPaymentBreakdown = getLastPaymentBreakdown();
+    const lastPaymentBreakdown = useLastPaymentBreakdown({
+        loan,
+        loanPayments
+    });
 
     return (
         <Row gutter={[16, 16]} className="overview-cards">
@@ -135,13 +109,7 @@ export const PaymentStatisticsCards: React.FC<PaymentStatisticsCardsProps> = ({
                                         </Tooltip>
                                     </span>
                                 }
-                                value={loanPayments.reduce((sum, payment) => {
-                                    if (payment.isExtraPayment) {
-                                        const minimumAmount = loan.minimumPayment || loanDetails.monthlyPayment;
-                                        return sum + (payment.amount - minimumAmount);
-                                    }
-                                    return sum;
-                                }, 0)}
+                                value={additionalSpentOverMinimum}
                                 prefix="$"
                                 valueStyle={{ color: '#722ed1' }}
                                 formatter={(value) => Number(value).toLocaleString()}
@@ -157,19 +125,19 @@ export const PaymentStatisticsCards: React.FC<PaymentStatisticsCardsProps> = ({
                     <div className="card-header">
                         <h3 className="card-title">Last Payment</h3>
                     </div>
-                    {lastPayment && lastPaymentBreakdown ? (
+                    {lastPaymentBreakdown ? (
                         <div className="last-payment-content">
                             <div className="last-payment-header">
                                 <div className="last-payment-amount">
                                     <Statistic
-                                        value={lastPayment.amount}
+                                        value={lastPaymentBreakdown.lastPayment.amount}
                                         prefix="$"
                                         valueStyle={{ color: '#52c41a', fontSize: '20px' }}
                                         formatter={(value) => Number(value).toLocaleString()}
                                     />
                                 </div>
                                 <div className="last-payment-date">
-                                    {new Date(lastPayment.paymentDate).toLocaleDateString()}
+                                    {new Date(lastPaymentBreakdown.lastPayment.paymentDate).toLocaleDateString()}
                                 </div>
                             </div>
 

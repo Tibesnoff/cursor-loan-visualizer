@@ -113,9 +113,6 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
                 layout="vertical"
                 onFinish={handleSubmit}
                 className="payment-form"
-                initialValues={{
-                    paymentDate: dayjs(),
-                }}
             >
                 <Form.Item
                     name="loanId"
@@ -186,17 +183,28 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
                         label={
                             <span>
                                 Payment Date
-                                <Tooltip title="When did you make this payment? This helps track your payment history.">
+                                <Tooltip title="When did you make this payment? Future dates are not allowed.">
                                     <QuestionCircleOutlined className="field-tooltip-icon" />
                                 </Tooltip>
                             </span>
                         }
-                        rules={[{ required: true, message: 'Please select a payment date' }]}
+                        rules={[
+                            { required: true, message: 'Please select a payment date' },
+                            {
+                                validator: (_, value) => {
+                                    if (value && value.isAfter(dayjs(), 'day')) {
+                                        return Promise.reject(new Error('Payment date cannot be in the future'));
+                                    }
+                                    return Promise.resolve();
+                                }
+                            }
+                        ]}
                         className="form-item-half"
                     >
                         <DatePicker
                             placeholder="Select payment date"
                             className="date-picker"
+                            disabledDate={(current) => current && current.isAfter(dayjs(), 'day')}
                             defaultValue={dayjs()}
                         />
                     </Form.Item>
