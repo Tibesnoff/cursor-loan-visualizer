@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Tag, Button, Space, Tooltip } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
 import { AddLoanModal } from '../components/AddLoanModal';
+import { AddPaymentModal } from '../components/AddPaymentModal';
 import { UserSetup } from '../components/UserSetup';
 import { Loan } from '../types';
 
@@ -10,7 +12,9 @@ export const MyLoans: React.FC = () => {
     const { loans } = useAppSelector((state) => state.loans);
     const { currentUser } = useAppSelector((state) => state.user);
     const [modalVisible, setModalVisible] = useState(false);
+    const [paymentModalVisible, setPaymentModalVisible] = useState(false);
     const [userSetupVisible, setUserSetupVisible] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!currentUser) {
@@ -30,8 +34,24 @@ export const MyLoans: React.FC = () => {
         setModalVisible(false);
     };
 
+    const handleAddPayment = () => {
+        if (!currentUser) {
+            setUserSetupVisible(true);
+            return;
+        }
+        setPaymentModalVisible(true);
+    };
+
+    const handlePaymentModalCancel = () => {
+        setPaymentModalVisible(false);
+    };
+
     const handleUserSetupComplete = () => {
         setUserSetupVisible(false);
+    };
+
+    const handleViewLoan = (loanId: string) => {
+        navigate(`/loan/${loanId}`);
     };
 
     const getLoanTypeColor = (loanType: string) => {
@@ -141,7 +161,7 @@ export const MyLoans: React.FC = () => {
             ),
             key: 'payment',
             render: (record: Loan) => {
-                if (record.paymentFrequency === 'minimum' && record.minimumPayment) {
+                if (record.minimumPayment) {
                     return `Min: $${record.minimumPayment}`;
                 }
                 return record.paymentFrequency.charAt(0).toUpperCase() + record.paymentFrequency.slice(1);
@@ -170,9 +190,13 @@ export const MyLoans: React.FC = () => {
                 </span>
             ),
             key: 'actions',
-            render: () => (
+            render: (_: any, record: Loan) => (
                 <Space>
-                    <Button type="link" size="small">
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => handleViewLoan(record.id)}
+                    >
                         View
                     </Button>
                     <Button type="link" size="small" danger>
@@ -189,9 +213,14 @@ export const MyLoans: React.FC = () => {
                 <h1 className="loans-title">
                     My Loans
                 </h1>
-                <button className="add-loan-button" onClick={handleAddLoan}>
-                    Add New Loan
-                </button>
+                <div className="header-buttons">
+                    <button className="add-payment-button" onClick={handleAddPayment}>
+                        <PlusOutlined /> Add Payment
+                    </button>
+                    <button className="add-loan-button" onClick={handleAddLoan}>
+                        Add New Loan
+                    </button>
+                </div>
             </div>
 
             {loans.length > 0 ? (
@@ -225,6 +254,11 @@ export const MyLoans: React.FC = () => {
             <AddLoanModal
                 visible={modalVisible}
                 onCancel={handleModalCancel}
+            />
+
+            <AddPaymentModal
+                visible={paymentModalVisible}
+                onCancel={handlePaymentModalCancel}
             />
 
             <UserSetup

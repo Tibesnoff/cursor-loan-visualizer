@@ -25,7 +25,7 @@ export const createLoan = (
   interestRate: number,
   termMonths: number,
   startDate: Date,
-  paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly' | 'minimum' = 'monthly',
+  paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly' = 'monthly',
   loanType: LoanType = 'personal',
   minimumPayment?: number
 ): Loan => {

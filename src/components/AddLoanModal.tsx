@@ -21,13 +21,62 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
     const [selectedLoanType, setSelectedLoanType] = useState<string>('');
 
     const loanTypes = [
-        { value: 'personal', label: 'Personal Loan', hasTerm: true, hasCollateral: false, needsMinimumPayment: false },
-        { value: 'auto', label: 'Auto Loan', hasTerm: true, hasCollateral: true, needsMinimumPayment: false },
-        { value: 'mortgage', label: 'Mortgage', hasTerm: true, hasCollateral: true, needsMinimumPayment: false },
-        { value: 'student', label: 'Student Loan', hasTerm: false, hasCollateral: false, needsMinimumPayment: true },
-        { value: 'credit_card', label: 'Credit Card', hasTerm: false, hasCollateral: false, needsMinimumPayment: true },
-        { value: 'business', label: 'Business Loan', hasTerm: true, hasCollateral: true, needsMinimumPayment: false },
-        { value: 'home_equity', label: 'Home Equity Loan', hasTerm: true, hasCollateral: true, needsMinimumPayment: false },
+        {
+            value: 'personal',
+            label: 'Personal Loan',
+            hasTerm: true,
+            hasCollateral: false,
+            needsMinimumPayment: false,
+            description: 'Unsecured loan with fixed monthly payments'
+        },
+        {
+            value: 'auto',
+            label: 'Auto Loan',
+            hasTerm: true,
+            hasCollateral: true,
+            needsMinimumPayment: false,
+            description: 'Secured by the vehicle with fixed monthly payments'
+        },
+        {
+            value: 'mortgage',
+            label: 'Mortgage',
+            hasTerm: true,
+            hasCollateral: true,
+            needsMinimumPayment: false,
+            description: 'Secured by the property with fixed monthly payments'
+        },
+        {
+            value: 'student',
+            label: 'Student Loan',
+            hasTerm: false,
+            hasCollateral: false,
+            needsMinimumPayment: true,
+            description: 'Monthly minimum payments, can pay more to reduce interest'
+        },
+        {
+            value: 'credit_card',
+            label: 'Credit Card',
+            hasTerm: false,
+            hasCollateral: false,
+            needsMinimumPayment: true,
+            description: 'Monthly minimum payments, revolving credit line'
+        },
+        {
+            value: 'business',
+            label: 'Business Loan',
+            hasTerm: true,
+            hasCollateral: true,
+            needsMinimumPayment: false,
+            description: 'Secured business loan with fixed monthly payments'
+        },
+        {
+            value: 'home_equity',
+            label: 'Home Equity Loan',
+            hasTerm: true,
+            hasCollateral: true,
+            needsMinimumPayment: false,
+            description: 'Secured by home equity with fixed monthly payments'
+        },
     ];
 
     const selectedType = loanTypes.find(type => type.value === selectedLoanType);
@@ -43,8 +92,8 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
             // For loans without terms (like student loans, credit cards), set term to 0
             const termMonths = selectedType?.hasTerm ? values.termMonths : 0;
 
-            // Set payment frequency based on loan type
-            const paymentFrequency = selectedType?.needsMinimumPayment ? 'minimum' : values.paymentFrequency;
+            // All loans use monthly payments
+            const paymentFrequency = 'monthly';
 
             // Get minimum payment for loans that need it
             const minimumPayment = selectedType?.needsMinimumPayment ? values.minimumPayment : undefined;
@@ -187,51 +236,28 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                 </div>
 
                 {selectedType?.hasTerm && (
-                    <div className="form-row">
-                        <Form.Item
-                            name="termMonths"
-                            label={
-                                <span>
-                                    Term (Months)
-                                    <Tooltip title="How long you have to pay back the loan. For example, 60 months = 5 years.">
-                                        <QuestionCircleOutlined className="field-tooltip-icon" />
-                                    </Tooltip>
-                                </span>
-                            }
-                            rules={[
-                                { required: true, message: 'Please enter the loan term' },
-                                { type: 'number', min: 1, message: 'Term must be at least 1 month' }
-                            ]}
-                            className="form-item-half"
-                        >
-                            <InputNumber
-                                placeholder="60"
-                                min={1}
-                                max={600}
-                                className="term-input"
-                            />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="paymentFrequency"
-                            label={
-                                <span>
-                                    Payment Frequency
-                                    <Tooltip title="How often you make payments. Monthly is most common, but some loans allow bi-weekly or weekly payments.">
-                                        <QuestionCircleOutlined className="field-tooltip-icon" />
-                                    </Tooltip>
-                                </span>
-                            }
-                            rules={[{ required: true, message: 'Please select payment frequency' }]}
-                            className="form-item-half"
-                        >
-                            <Select placeholder="Select frequency" className="frequency-select">
-                                <Option value="monthly">Monthly</Option>
-                                <Option value="bi-weekly">Bi-weekly</Option>
-                                <Option value="weekly">Weekly</Option>
-                            </Select>
-                        </Form.Item>
-                    </div>
+                    <Form.Item
+                        name="termMonths"
+                        label={
+                            <span>
+                                Term (Months)
+                                <Tooltip title="How long you have to pay back the loan. For example, 60 months = 5 years.">
+                                    <QuestionCircleOutlined className="field-tooltip-icon" />
+                                </Tooltip>
+                            </span>
+                        }
+                        rules={[
+                            { required: true, message: 'Please enter the loan term' },
+                            { type: 'number', min: 1, message: 'Term must be at least 1 month' }
+                        ]}
+                    >
+                        <InputNumber
+                            placeholder="60"
+                            min={1}
+                            max={600}
+                            className="term-input"
+                        />
+                    </Form.Item>
                 )}
 
                 {selectedType?.needsMinimumPayment && (
@@ -263,7 +289,7 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                     <div className="no-term-notice">
                         <p>
                             {selectedType?.needsMinimumPayment
-                                ? "This loan type requires minimum payments. You can pay more than the minimum to pay off the loan faster."
+                                ? "This loan type uses monthly minimum payments. You can pay more than the minimum to reduce interest and pay off the loan faster."
                                 : "This loan type doesn't have a fixed term. Payments will continue until the balance is paid off."
                             }
                         </p>

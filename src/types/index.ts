@@ -26,8 +26,8 @@ export interface Loan {
   interestRate: number; // Annual percentage rate
   termMonths: number; // 0 for loans without fixed terms
   startDate: Date;
-  paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly' | 'minimum'; // 'minimum' for student loans and credit cards
-  minimumPayment?: number; // Required for student loans and credit cards
+  paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly';
+  minimumPayment?: number; // Required for credit cards and student loans
   createdAt: Date;
   updatedAt: Date;
 }

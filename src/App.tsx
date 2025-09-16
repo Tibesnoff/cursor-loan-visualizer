@@ -6,6 +6,7 @@ import { store } from './store';
 import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './pages/LandingPage';
 import { MyLoans } from './pages/MyLoans';
+import { LoanVisualizerPage } from './pages/LoanVisualizerPage';
 import './App.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/loans" element={<MyLoans />} />
+              <Route path="/loan/:loanId" element={<LoanVisualizerPage />} />
             </Routes>
           </Layout>
         </Layout>
