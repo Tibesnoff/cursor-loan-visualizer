@@ -1,0 +1,67 @@
+/* Statistic Card Styles */
+.statistic-card {
+  text-align: center;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.statistic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.statistic-card .ant-statistic-title {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.statistic-card .ant-statistic-content {
+  color: #262626;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.statistic-card .ant-statistic-content-value {
+  color: #262626;
+}
+
+.statistic-card .ant-statistic-content-suffix {
+  color: #666;
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+/* Statistic Card Variants */
+.statistic-card.primary .ant-statistic-content {
+  color: #1890ff;
+}
+
+.statistic-card.success .ant-statistic-content {
+  color: #52c41a;
+}
+
+.statistic-card.warning .ant-statistic-content {
+  color: #fa8c16;
+}
+
+.statistic-card.danger .ant-statistic-content {
+  color: #ff4d4f;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .statistic-card {
+    padding: 16px;
+  }
+  
+  .statistic-card .ant-statistic-content {
+    font-size: 20px;
+  }
+}

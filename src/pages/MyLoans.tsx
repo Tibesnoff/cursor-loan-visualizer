@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Tag, Button, Space, Tooltip } from 'antd';
+import { Table, Button, Space, Tooltip } from 'antd';
 import { QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
-import { AddLoanModal } from '../components/AddLoanModal';
-import { AddPaymentModal } from '../components/AddPaymentModal';
-import { UserSetup } from '../components/UserSetup';
+import { AddLoanModal, AddPaymentModal, UserSetup } from '../components/forms';
+import { LoanTypeBadge } from '../components/ui';
 import { Loan } from '../types';
+import './MyLoans.css';
 
 export const MyLoans: React.FC = () => {
     const { loans } = useAppSelector((state) => state.loans);
@@ -54,31 +54,6 @@ export const MyLoans: React.FC = () => {
         navigate(`/loan/${loanId}`);
     };
 
-    const getLoanTypeColor = (loanType: string) => {
-        const colors: { [key: string]: string } = {
-            personal: 'blue',
-            auto: 'green',
-            mortgage: 'purple',
-            student: 'orange',
-            credit_card: 'red',
-            business: 'cyan',
-            home_equity: 'magenta',
-        };
-        return colors[loanType] || 'default';
-    };
-
-    const getLoanTypeLabel = (loanType: string) => {
-        const labels: { [key: string]: string } = {
-            personal: 'Personal Loan',
-            auto: 'Auto Loan',
-            mortgage: 'Mortgage',
-            student: 'Student Loan',
-            credit_card: 'Credit Card',
-            business: 'Business Loan',
-            home_equity: 'Home Equity Loan',
-        };
-        return labels[loanType] || loanType;
-    };
 
     const columns = [
         {
@@ -106,9 +81,7 @@ export const MyLoans: React.FC = () => {
             dataIndex: 'loanType',
             key: 'loanType',
             render: (loanType: string) => (
-                <Tag color={getLoanTypeColor(loanType)}>
-                    {getLoanTypeLabel(loanType)}
-                </Tag>
+                <LoanTypeBadge loanType={loanType as any} />
             ),
         },
         {

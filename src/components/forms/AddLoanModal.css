@@ -1,0 +1,81 @@
+/* Add Loan Modal Styles */
+.add-loan-modal .ant-modal-header {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border-radius: 8px 8px 0 0;
+}
+
+.add-loan-modal .ant-modal-title {
+  color: white;
+  font-weight: 600;
+}
+
+.add-loan-modal .ant-modal-close {
+  color: white;
+}
+
+.add-loan-modal .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.add-loan-modal .ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.add-loan-modal .ant-input,
+.add-loan-modal .ant-input-number,
+.add-loan-modal .ant-select-selector {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.add-loan-modal .ant-input:focus,
+.add-loan-modal .ant-input-number:focus,
+.add-loan-modal .ant-select-focused .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.add-loan-modal .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.add-loan-modal .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
+}
+
+.add-loan-modal .ant-btn-default {
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.loan-type-info {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #52c41a;
+}
+
+.loan-type-info.warning {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #fa8c16;
+}
+
+.loan-type-info.error {
+  background: #fff2f0;
+  border-color: #ffccc7;
+  color: #ff4d4f;
+}

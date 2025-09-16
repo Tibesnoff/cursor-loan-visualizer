@@ -1,0 +1,72 @@
+/* Loan Type Badge Styles */
+.loan-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* Loan Type Colors */
+.loan-type-badge.mortgage {
+  background: #e6f7ff;
+  color: #1890ff;
+  border-color: #91d5ff;
+}
+
+.loan-type-badge.auto {
+  background: #f6ffed;
+  color: #52c41a;
+  border-color: #b7eb8f;
+}
+
+.loan-type-badge.personal {
+  background: #fff7e6;
+  color: #fa8c16;
+  border-color: #ffd591;
+}
+
+.loan-type-badge.student {
+  background: #f9f0ff;
+  color: #722ed1;
+  border-color: #d3adf7;
+}
+
+.loan-type-badge.credit-card {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border-color: #ffccc7;
+}
+
+.loan-type-badge.business {
+  background: #f0f0f0;
+  color: #595959;
+  border-color: #d9d9d9;
+}
+
+.loan-type-badge.other {
+  background: #fafafa;
+  color: #8c8c8c;
+  border-color: #d9d9d9;
+}
+
+/* Hover Effects */
+.loan-type-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Size Variants */
+.loan-type-badge.small {
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+.loan-type-badge.large {
+  padding: 6px 16px;
+  font-size: 14px;
+}

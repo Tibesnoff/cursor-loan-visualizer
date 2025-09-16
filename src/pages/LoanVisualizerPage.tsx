@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
-import { LoanVisualizer } from '../components/LoanVisualizer';
+import { LoanVisualizer } from '../components/loan';
+import './LoanVisualizerPage.css';
 
 export const LoanVisualizerPage: React.FC = () => {
     const { loanId } = useParams<{ loanId: string }>();

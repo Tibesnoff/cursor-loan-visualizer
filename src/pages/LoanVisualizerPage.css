@@ -1,0 +1,156 @@
+/* Loan Visualizer Styles */
+.loan-visualizer {
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.visualizer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.back-button {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.visualizer-title {
+  color: #262626;
+  font-size: 28px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.visualizer-content {
+  width: 100%;
+}
+
+.overview-cards {
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  text-align: center;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 16px;
+}
+
+.pie-charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .pie-charts-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.loan-details-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loan-details-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 16px;
+}
+
+.loan-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.loan-detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.loan-detail-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loan-detail-value {
+  font-size: 16px;
+  color: #262626;
+  font-weight: 500;
+}
+
+.add-payment-button {
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(82, 196, 26, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-payment-button:hover {
+  background-color: #73d13d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(82, 196, 26, 0.3);
+}

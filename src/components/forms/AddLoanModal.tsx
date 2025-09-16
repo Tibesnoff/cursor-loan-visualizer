@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Divider, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { addLoan } from '../store/slices/loansSlice';
-import { createLoan } from '../utils/dataUtils';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { addLoan } from '../../store/slices/loansSlice';
+import { createLoan } from '../../utils/dataUtils';
+import { getLoanTypesForForm } from '../../utils/loanUtils';
 import dayjs from 'dayjs';
+import './AddLoanModal.css';
 
 const { Option } = Select;
 
@@ -20,64 +22,7 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
     const [loading, setLoading] = useState(false);
     const [selectedLoanType, setSelectedLoanType] = useState<string>('');
 
-    const loanTypes = [
-        {
-            value: 'personal',
-            label: 'Personal Loan',
-            hasTerm: true,
-            hasCollateral: false,
-            needsMinimumPayment: false,
-            description: 'Unsecured loan with fixed monthly payments'
-        },
-        {
-            value: 'auto',
-            label: 'Auto Loan',
-            hasTerm: true,
-            hasCollateral: true,
-            needsMinimumPayment: false,
-            description: 'Secured by the vehicle with fixed monthly payments'
-        },
-        {
-            value: 'mortgage',
-            label: 'Mortgage',
-            hasTerm: true,
-            hasCollateral: true,
-            needsMinimumPayment: false,
-            description: 'Secured by the property with fixed monthly payments'
-        },
-        {
-            value: 'student',
-            label: 'Student Loan',
-            hasTerm: false,
-            hasCollateral: false,
-            needsMinimumPayment: true,
-            description: 'Monthly minimum payments, can pay more to reduce interest'
-        },
-        {
-            value: 'credit_card',
-            label: 'Credit Card',
-            hasTerm: false,
-            hasCollateral: false,
-            needsMinimumPayment: true,
-            description: 'Monthly minimum payments, revolving credit line'
-        },
-        {
-            value: 'business',
-            label: 'Business Loan',
-            hasTerm: true,
-            hasCollateral: true,
-            needsMinimumPayment: false,
-            description: 'Secured business loan with fixed monthly payments'
-        },
-        {
-            value: 'home_equity',
-            label: 'Home Equity Loan',
-            hasTerm: true,
-            hasCollateral: true,
-            needsMinimumPayment: false,
-            description: 'Secured by home equity with fixed monthly payments'
-        },
-    ];
+    const loanTypes = getLoanTypesForForm();
 
     const selectedType = loanTypes.find(type => type.value === selectedLoanType);
 

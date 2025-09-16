@@ -1,31 +1,27 @@
-import { useState } from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Layout } from 'antd';
 import { store } from './store';
-import { Sidebar } from './components/Sidebar';
+import { Sidebar } from './components/layout/Sidebar';
 import { LandingPage } from './pages/LandingPage';
 import { MyLoans } from './pages/MyLoans';
 import { LoanVisualizerPage } from './pages/LoanVisualizerPage';
+import './components/layout/AppLayout.css';
 import './App.css';
 
 function App() {
-  const [collapsed, setCollapsed] = useState(false);
-
   return (
     <Provider store={store}>
       <Router>
-        <Layout className="app-layout">
-          <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-
-          <Layout className="main-layout">
+        <div className="app-container">
+          <Sidebar />
+          <div className="main-content">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/loans" element={<MyLoans />} />
               <Route path="/loan/:loanId" element={<LoanVisualizerPage />} />
             </Routes>
-          </Layout>
-        </Layout>
+          </div>
+        </div>
       </Router>
     </Provider>
   );

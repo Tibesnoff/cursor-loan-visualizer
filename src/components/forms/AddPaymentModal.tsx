@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Divider, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { addPayment } from '../store/slices/paymentsSlice';
-import { createPayment, getRemainingBalanceForLoan } from '../utils/dataUtils';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { addPayment } from '../../store/slices/paymentsSlice';
+import { createPayment, getRemainingBalanceForLoan } from '../../utils/dataUtils';
 import dayjs from 'dayjs';
+import './AddPaymentModal.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -15,10 +16,10 @@ interface AddPaymentModalProps {
     preselectedLoanId?: string; // Optional preselected loan ID
 }
 
-export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({ 
-    visible, 
-    onCancel, 
-    preselectedLoanId 
+export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
+    visible,
+    onCancel,
+    preselectedLoanId
 }) => {
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
@@ -50,19 +51,19 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
         try {
             const paymentDate = values.paymentDate.toDate();
             const amount = values.amount;
-            
+
             // Calculate interest and principal amounts
             const monthlyRate = selectedLoan.interestRate / 100 / 12;
             const currentBalance = getRemainingBalanceForLoan(selectedLoan, payments);
             const interestAmount = currentBalance * monthlyRate;
             const principalAmount = Math.max(0, amount - interestAmount);
             const newBalance = Math.max(0, currentBalance - principalAmount);
-            
+
             // Determine if this is an extra payment
-            const isExtraPayment = selectedLoan.minimumPayment 
-                ? amount > selectedLoan.minimumPayment 
-                : amount > (selectedLoan.termMonths > 0 ? 
-                    (selectedLoan.principal * monthlyRate * Math.pow(1 + monthlyRate, selectedLoan.termMonths)) / 
+            const isExtraPayment = selectedLoan.minimumPayment
+                ? amount > selectedLoan.minimumPayment
+                : amount > (selectedLoan.termMonths > 0 ?
+                    (selectedLoan.principal * monthlyRate * Math.pow(1 + monthlyRate, selectedLoan.termMonths)) /
                     (Math.pow(1 + monthlyRate, selectedLoan.termMonths) - 1) : 0);
 
             const newPayment = createPayment(
@@ -128,7 +129,7 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
                     }
                     rules={[{ required: true, message: 'Please select a loan' }]}
                 >
-                    <Select 
+                    <Select
                         placeholder="Select loan"
                         onChange={handleLoanChange}
                         className="loan-select"

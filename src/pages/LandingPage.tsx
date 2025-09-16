@@ -1,12 +1,18 @@
 import React from 'react';
-import { Layout } from 'antd';
-
-const { Content } = Layout;
+import './LandingPage.css';
 
 export const LandingPage: React.FC = () => {
     return (
-        <Content className="landing-content">
-            {/* Landing page content */}
-        </Content>
+        <div className="home-page">
+            <div className="home-header">
+                <h1 className="home-title">
+                    Home
+                </h1>
+            </div>
+
+            <div className="home-content">
+                <p>Welcome to Loan Visualizer</p>
+            </div>
+        </div>
     );
 };

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Button, message } from 'antd';
-import { useAppDispatch } from '../hooks/redux';
-import { setUser } from '../store/slices/userSlice';
-import { createUser } from '../utils/dataUtils';
+import { useAppDispatch } from '../../hooks/redux';
+import { setUser } from '../../store/slices/userSlice';
+import { createUser } from '../../utils/dataUtils';
+import './UserSetup.css';
 
 interface UserSetupProps {
     visible: boolean;

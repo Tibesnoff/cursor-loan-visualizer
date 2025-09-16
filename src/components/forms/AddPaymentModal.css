@@ -1,0 +1,71 @@
+/* Payment Modal Styles */
+.add-payment-modal .ant-modal-header {
+  background: linear-gradient(135deg, #52c41a, #73d13d);
+  border-radius: 8px 8px 0 0;
+}
+
+.add-payment-modal .ant-modal-title {
+  color: white;
+  font-weight: 600;
+}
+
+.add-payment-modal .ant-modal-close {
+  color: white;
+}
+
+.add-payment-modal .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.add-payment-modal .ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.add-payment-modal .ant-input,
+.add-payment-modal .ant-input-number,
+.add-payment-modal .ant-select-selector,
+.add-payment-modal .ant-picker {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.add-payment-modal .ant-input:focus,
+.add-payment-modal .ant-input-number:focus,
+.add-payment-modal .ant-select-focused .ant-select-selector,
+.add-payment-modal .ant-picker-focused {
+  border-color: #52c41a;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+}
+
+.add-payment-modal .ant-btn-primary {
+  background: linear-gradient(135deg, #52c41a, #73d13d);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.add-payment-modal .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #73d13d, #95de64);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(82, 196, 26, 0.3);
+}
+
+.add-payment-modal .ant-btn-default {
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.payment-amount-input .ant-input-number {
+  width: 100%;
+}
+
+.payment-amount-input .ant-input-number-input {
+  text-align: right;
+  font-weight: 600;
+  font-size: 16px;
+}
