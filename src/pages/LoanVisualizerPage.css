@@ -35,8 +35,22 @@
   width: 100%;
 }
 
-.overview-cards {
+/* Section Grouping */
+.section-group {
+  margin-bottom: 48px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
   margin-bottom: 24px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.overview-cards {
+  margin-bottom: 0;
 }
 
 .stat-card {
@@ -70,8 +84,12 @@
   background: white;
   border-radius: 8px;
   padding: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.charts-section {
+  margin-bottom: 32px;
 }
 
 .chart-title {
@@ -153,4 +171,136 @@
   background-color: #73d13d;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(82, 196, 26, 0.3);
+}
+
+/* Loan Details Card */
+.details-card {
+  margin-bottom: 0;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.detail-item strong {
+  margin-right: 8px;
+  color: #262626;
+  font-weight: 600;
+}
+
+.detail-item span {
+  color: #595959;
+}
+
+/* Grouped Cards */
+.grouped-card {
+  height: 100%;
+  min-height: 200px;
+}
+
+.grouped-card .ant-card-body {
+  padding: 20px;
+}
+
+.card-header {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+}
+
+.grouped-card .ant-statistic {
+  text-align: center;
+}
+
+.grouped-card .ant-statistic-title {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+.grouped-card .ant-statistic-content {
+  font-size: 20px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* Last Payment Card */
+.last-payment-content {
+  text-align: left;
+}
+
+.last-payment-header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.last-payment-amount {
+  margin-bottom: 8px;
+}
+
+.last-payment-date {
+  font-size: 14px;
+  color: #595959;
+}
+
+.last-payment-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.breakdown-row.total {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 8px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.breakdown-label {
+  font-size: 13px;
+  color: #595959;
+  font-weight: 500;
+}
+
+.breakdown-value {
+  font-size: 13px;
+  color: #262626;
+  font-weight: 600;
+}
+
+.breakdown-value.interest {
+  color: #fa8c16;
+}
+
+.breakdown-value.principal {
+  color: #1890ff;
+}
+
+.no-payments {
+  text-align: center;
+  padding: 20px;
+  color: #8c8c8c;
+}
+
+.no-payments p {
+  margin: 0;
+  font-style: italic;
 }

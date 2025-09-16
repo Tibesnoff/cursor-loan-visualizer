@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col } from 'antd';
-import { StatisticCard } from '../ui';
+import { Row, Col, Card, Statistic, Tooltip } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 
 interface LoanOverviewCardsProps {
     loan: {
@@ -10,54 +10,91 @@ interface LoanOverviewCardsProps {
     };
     loanDetails: {
         monthlyPayment: number;
-        totalInterest: number;
+    };
+    actualLoanStats: {
+        remainingBalance: number;
     };
 }
 
 export const LoanOverviewCards: React.FC<LoanOverviewCardsProps> = ({
     loan,
-    loanDetails
+    loanDetails,
+    actualLoanStats
 }) => {
     return (
         <Row gutter={[16, 16]} className="overview-cards">
-            <Col xs={24} sm={12} md={6}>
-                <StatisticCard
-                    title="Principal Amount"
-                    value={loan.principal}
-                    prefix="$"
-                    tooltip="The original amount you borrowed"
-                    valueStyle={{ color: '#1890ff' }}
-                    formatter={(value) => Number(value).toLocaleString()}
-                />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-                <StatisticCard
-                    title="Interest Rate"
-                    value={loan.interestRate}
-                    suffix="%"
-                    tooltip="Annual percentage rate charged on your loan"
-                    valueStyle={{ color: '#52c41a' }}
-                />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-                <StatisticCard
-                    title={loan.minimumPayment ? 'Minimum Payment' : 'Monthly Payment'}
-                    value={loanDetails.monthlyPayment}
-                    prefix="$"
-                    tooltip={loan.minimumPayment ? 'Minimum amount you must pay each month' : 'Fixed monthly payment amount'}
-                    valueStyle={{ color: '#fa8c16' }}
-                    formatter={(value) => Number(value).toLocaleString()}
-                />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-                <StatisticCard
-                    title="Total Interest"
-                    value={loanDetails.totalInterest}
-                    prefix="$"
-                    tooltip="Total interest you'll pay over the life of the loan"
-                    valueStyle={{ color: '#f5222d' }}
-                    formatter={(value) => Number(value).toLocaleString()}
-                />
+            {/* Loan Overview Card */}
+            <Col xs={24}>
+                <Card className="grouped-card">
+                    <div className="card-header">
+                        <h3 className="card-title">Loan Overview</h3>
+                    </div>
+                    <Row gutter={[16, 16]}>
+                        <Col xs={12} sm={6}>
+                            <Statistic
+                                title={
+                                    <span>
+                                        Principal Amount
+                                        <Tooltip title="The original amount you borrowed (starting balance)">
+                                            <QuestionCircleOutlined className="field-tooltip-icon" />
+                                        </Tooltip>
+                                    </span>
+                                }
+                                value={loan.principal}
+                                prefix="$"
+                                valueStyle={{ color: '#1890ff' }}
+                                formatter={(value) => Number(value).toLocaleString()}
+                            />
+                        </Col>
+                        <Col xs={12} sm={6}>
+                            <Statistic
+                                title={
+                                    <span>
+                                        Remaining Balance
+                                        <Tooltip title="Current balance remaining on the loan after all payments made">
+                                            <QuestionCircleOutlined className="field-tooltip-icon" />
+                                        </Tooltip>
+                                    </span>
+                                }
+                                value={actualLoanStats.remainingBalance}
+                                prefix="$"
+                                valueStyle={{ color: '#ff4d4f' }}
+                                formatter={(value) => Number(value).toLocaleString()}
+                            />
+                        </Col>
+                        <Col xs={12} sm={6}>
+                            <Statistic
+                                title={
+                                    <span>
+                                        Interest Rate
+                                        <Tooltip title="Annual percentage rate charged on your loan">
+                                            <QuestionCircleOutlined className="field-tooltip-icon" />
+                                        </Tooltip>
+                                    </span>
+                                }
+                                value={loan.interestRate}
+                                suffix="%"
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Col>
+                        <Col xs={12} sm={6}>
+                            <Statistic
+                                title={
+                                    <span>
+                                        {loan.minimumPayment ? 'Minimum Payment' : 'Monthly Payment'}
+                                        <Tooltip title={loan.minimumPayment ? 'Minimum amount you must pay each month' : 'Fixed monthly payment amount'}>
+                                            <QuestionCircleOutlined className="field-tooltip-icon" />
+                                        </Tooltip>
+                                    </span>
+                                }
+                                value={loanDetails.monthlyPayment}
+                                prefix="$"
+                                valueStyle={{ color: '#fa8c16' }}
+                                formatter={(value) => Number(value).toLocaleString()}
+                            />
+                        </Col>
+                    </Row>
+                </Card>
             </Col>
         </Row>
     );

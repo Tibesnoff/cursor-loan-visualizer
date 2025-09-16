@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 interface LoanDetailsCardProps {
     loan: Loan;
     loanDetails: {
-        totalAmount: number;
+        monthlyPayment: number;
     };
 }
 
@@ -20,37 +20,37 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({
             <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Loan Type:</strong>
+                        <strong>Loan Type: </strong>
                         <LoanTypeBadge loanType={loan.loanType} />
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Term:</strong>
+                        <strong>Term: </strong>
                         <span>{loan.termMonths === 0 ? 'No fixed term' : `${loan.termMonths} months (${Math.round(loan.termMonths / 12)} years)`}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Payment Frequency:</strong>
+                        <strong>Payment Frequency: </strong>
                         <span>{loan.paymentFrequency.charAt(0).toUpperCase() + loan.paymentFrequency.slice(1)}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Start Date:</strong>
+                        <strong>Start Date: </strong>
                         <span>{dayjs(loan.startDate).format('MMMM D, YYYY')}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Total Amount:</strong>
-                        <span>${loanDetails.totalAmount.toLocaleString()}</span>
+                        <strong>Monthly Payment: </strong>
+                        <span>${loanDetails.monthlyPayment.toLocaleString()}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Created:</strong>
+                        <strong>Created: </strong>
                         <span>{dayjs(loan.createdAt).format('MMMM DD, YYYY')}</span>
                     </div>
                 </Col>

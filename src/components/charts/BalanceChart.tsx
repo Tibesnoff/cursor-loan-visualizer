@@ -22,10 +22,9 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
         <Card
             title={
                 <span>
-                    {loan.minimumPayment ? 'Loan Balance & Payment Progress' : 'Payment Schedule & Balance'}
-                    <Tooltip title={loan.minimumPayment ?
-                        "Shows your loan balance over time (blue line) and actual payments made (green dashed line)." :
-                        "Shows your loan balance over time (blue line) and actual payments made (green dashed line)."
+                    Loan Balance Over Time
+                    <Tooltip title={
+                        "Shows your actual loan balance (blue line) vs projected balance (gray dashed line) and actual payments made (green dashed line). The actual balance reflects all payments you've made."
                     }>
                         <QuestionCircleOutlined className="field-tooltip-icon" />
                     </Tooltip>
@@ -70,22 +69,35 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
                     <RechartsTooltip
                         formatter={(value, name) => [
                             `$${Number(value).toLocaleString()}`,
-                            name === 'balance' ? 'Remaining Balance' :
-                                name === 'actualPayment' ? 'Actual Payment Made' : 'Unknown'
+                            name === 'actualBalance' ? 'Actual Balance' :
+                                name === 'projectedBalance' ? 'Projected Balance' :
+                                    name === 'actualPayment' ? 'Actual Payment Made' : 'Unknown'
                         ]}
                         labelFormatter={(month) => `Month ${month}`}
                     />
                     <Legend />
 
-                    {/* Balance line */}
+                    {/* Actual balance line (with payments applied) */}
                     <Line
                         yAxisId="balance"
                         type="monotone"
-                        dataKey="balance"
+                        dataKey="actualBalance"
                         stroke="#1890ff"
                         strokeWidth={3}
-                        name="Remaining Balance"
+                        name="Actual Balance"
                         dot={{ fill: '#1890ff', strokeWidth: 2, r: 4 }}
+                    />
+
+                    {/* Projected balance line (without actual payments) */}
+                    <Line
+                        yAxisId="balance"
+                        type="monotone"
+                        dataKey="projectedBalance"
+                        stroke="#d9d9d9"
+                        strokeWidth={2}
+                        strokeDasharray="3 3"
+                        name="Projected Balance"
+                        dot={{ fill: '#d9d9d9', strokeWidth: 1, r: 3 }}
                     />
 
                     {/* Actual payments */}
