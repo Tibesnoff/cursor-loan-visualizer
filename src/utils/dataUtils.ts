@@ -30,7 +30,8 @@ export const createLoan = (
   minimumPayment?: number,
   paymentDueDay?: number,
   paymentsStartDate?: Date,
-  interestAccrualMethod: InterestAccrualMethod = 'daily'
+  interestAccrualMethod: InterestAccrualMethod = 'daily',
+  isSubsidized?: boolean
 ): Loan => {
   const now = new Date();
   return {
@@ -47,6 +48,7 @@ export const createLoan = (
     minimumPayment,
     paymentDueDay,
     interestAccrualMethod,
+    isSubsidized,
     createdAt: now,
     updatedAt: now,
   };

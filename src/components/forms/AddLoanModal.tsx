@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Divider, Tooltip } from 'antd';
+import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Divider, Tooltip, Checkbox } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addLoan } from '../../store/slices/loansSlice';
@@ -55,7 +55,8 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                 minimumPayment,
                 values.paymentDueDay,
                 values.paymentsStartDate?.toDate(),
-                values.interestAccrualMethod
+                values.interestAccrualMethod,
+                values.isSubsidized
             );
 
             dispatch(addLoan(newLoan));
@@ -332,6 +333,27 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                         </Select>
                     </Form.Item>
                 </div>
+
+                {selectedType?.loanType === 'student' && (
+                    <div className="form-row">
+                        <Form.Item
+                            name="isSubsidized"
+                            label={
+                                <span>
+                                    Subsidized Loan
+                                    <Tooltip title="Subsidized loans don't accrue interest during grace periods. Unsubsidized loans accrue interest from disbursement.">
+                                        <QuestionCircleOutlined className="field-tooltip-icon" />
+                                    </Tooltip>
+                                </span>
+                            }
+                            valuePropName="checked"
+                            className="form-item-half"
+                            initialValue={false}
+                        >
+                            <Checkbox>This is a subsidized loan</Checkbox>
+                        </Form.Item>
+                    </div>
+                )}
 
                 <div className="form-actions">
                     <Button onClick={handleCancel} className="cancel-button">

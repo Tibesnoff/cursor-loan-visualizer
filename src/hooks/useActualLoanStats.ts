@@ -2,6 +2,10 @@ import { useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
 import { calculateInterestBetweenDates } from '../utils/interestCalculations';
+import {
+  calculateEffectiveStartingBalance,
+  applyPaymentToBalance,
+} from '../utils/loanCalculationUtils';
 
 export const useActualLoanStats = (loan: Loan, loanPayments: Payment[]) => {
   const {
@@ -24,10 +28,10 @@ export const useActualLoanStats = (loan: Loan, loanPayments: Payment[]) => {
       0
     );
 
-    // Process payments chronologically (not by month)
+    // Use the new loan calculation utility to get the effective starting balance
+    let balance = calculateEffectiveStartingBalance(loan);
     let interestPaid = 0;
     let principalPaid = 0;
-    let balance = loan.principal;
 
     // Sort all relevant payments by date
     const sortedPayments = [...relevantPayments].sort(
@@ -35,33 +39,27 @@ export const useActualLoanStats = (loan: Loan, loanPayments: Payment[]) => {
         new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
     );
 
-    // Process each payment individually using the selected interest accrual method
-    // Use payments start date for interest calculation, but include all payments
+    // Process each payment individually using the new utility
+    // Use payments start date as the baseline for all calculations
     let lastPaymentDate = loan.paymentsStartDate
       ? new Date(loan.paymentsStartDate)
       : new Date(loan.startDate);
 
     sortedPayments.forEach((payment, index) => {
-      const paymentDate = new Date(payment.paymentDate);
-
-      // Calculate interest accrued over this period using the selected method
-      const interestOwed = calculateInterestBetweenDates(
+      const paymentResult = applyPaymentToBalance(
         balance,
+        payment,
         loan.interestRate,
-        lastPaymentDate,
-        paymentDate,
-        loan.interestAccrualMethod
+        loan.interestAccrualMethod,
+        lastPaymentDate
       );
 
-      const interestFromPayment = Math.min(interestOwed, payment.amount);
-      const principalFromPayment = Math.max(0, payment.amount - interestOwed);
-
-      interestPaid += interestFromPayment;
-      principalPaid += principalFromPayment;
-      balance = Math.max(0, balance - principalFromPayment);
+      balance = paymentResult.newBalance;
+      interestPaid += paymentResult.interestPaid;
+      principalPaid += paymentResult.principalPaid;
 
       // Update last payment date for next calculation
-      lastPaymentDate = paymentDate;
+      lastPaymentDate = new Date(payment.paymentDate);
     });
 
     // Calculate interest accrued since the last payment up to today

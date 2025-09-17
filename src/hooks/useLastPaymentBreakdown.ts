@@ -2,6 +2,10 @@ import { useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
 import { calculateInterestBetweenDates } from '../utils/interestCalculations';
+import {
+  calculateEffectiveStartingBalance,
+  applyPaymentToBalance,
+} from '../utils/loanCalculationUtils';
 
 interface UseLastPaymentBreakdownProps {
   loan: Loan;
@@ -39,69 +43,39 @@ export const useLastPaymentBreakdown = ({
           new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
       );
 
-    // For student loans, the balance typically starts at principal when payments begin
-    // Only add interest if there's a short gap (like a few months) between loan start and payments start
-    let balanceBeforePayment = loan.principal;
+    // Use the new loan calculation utility to get the effective starting balance
+    // This will be the principal amount when payments begin
+    let balanceBeforePayment = calculateEffectiveStartingBalance(loan);
     let lastPaymentDate = loan.paymentsStartDate
       ? new Date(loan.paymentsStartDate)
       : new Date(loan.startDate);
 
-    // Only add interest if the gap is reasonable (less than 1 year)
-    if (loan.paymentsStartDate) {
-      const loanStartDate = new Date(loan.startDate);
-      const paymentsStartDate = new Date(loan.paymentsStartDate);
-      const daysDifference =
-        Math.abs(paymentsStartDate.getTime() - loanStartDate.getTime()) /
-        (1000 * 60 * 60 * 24);
-
-      // Only add interest if the gap is less than 365 days
-      if (daysDifference < 365) {
-        const interestBeforePaymentsStart = calculateInterestBetweenDates(
-          balanceBeforePayment,
-          loan.interestRate,
-          loanStartDate,
-          paymentsStartDate,
-          loan.interestAccrualMethod
-        );
-        balanceBeforePayment += interestBeforePaymentsStart;
-      }
-    }
-
     paymentsBeforeLast.forEach(payment => {
-      const paymentDate = new Date(payment.paymentDate);
-
-      // Calculate interest accrued over this period using the selected method
-      const interestOwed = calculateInterestBetweenDates(
+      const paymentResult = applyPaymentToBalance(
         balanceBeforePayment,
+        payment,
         loan.interestRate,
-        lastPaymentDate,
-        paymentDate,
-        loan.interestAccrualMethod
+        loan.interestAccrualMethod,
+        lastPaymentDate
       );
 
-      const principalPayment = Math.max(0, payment.amount - interestOwed);
-      balanceBeforePayment = Math.max(
-        0,
-        balanceBeforePayment - principalPayment
-      );
-
-      lastPaymentDate = paymentDate;
+      balanceBeforePayment = paymentResult.newBalance;
+      lastPaymentDate = new Date(payment.paymentDate);
     });
 
-    // Calculate breakdown for the last payment using the selected interest accrual method
+    // Calculate breakdown for the last payment using the new utility
     const paymentDate = new Date(lastPayment.paymentDate);
-    const interestOwed = calculateInterestBetweenDates(
+    const lastPaymentResult = applyPaymentToBalance(
       balanceBeforePayment,
+      lastPayment,
       loan.interestRate,
-      lastPaymentDate,
-      paymentDate,
-      loan.interestAccrualMethod
+      loan.interestAccrualMethod,
+      lastPaymentDate
     );
-    const principalPayment = Math.max(0, lastPayment.amount - interestOwed);
-    let balanceAfterPayment = Math.max(
-      0,
-      balanceBeforePayment - principalPayment
-    );
+
+    const interestPaid = lastPaymentResult.interestPaid;
+    const principalPaid = lastPaymentResult.principalPaid;
+    let balanceAfterPayment = lastPaymentResult.newBalance;
 
     // Calculate interest accrued since the last payment up to today
     const currentDate = new Date();
@@ -121,8 +95,8 @@ export const useLastPaymentBreakdown = ({
       balanceBefore: balanceBeforePayment,
       balanceAfter: balanceAfterPayment,
       currentBalance: currentBalance,
-      interestPaid: Math.min(interestOwed, lastPayment.amount),
-      principalPaid: principalPayment,
+      interestPaid: interestPaid,
+      principalPaid: principalPaid,
     };
   }, [
     loan,

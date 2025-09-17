@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
 import { calculateInterestBetweenDates } from '../utils/interestCalculations';
+import { calculateEffectiveStartingBalance } from '../utils/loanCalculationUtils';
 
 export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
   const {
@@ -13,8 +14,9 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
 
   const paymentScheduleData = useMemo(() => {
     const data = [];
-    let actualBalance = loan.principal;
-    let minimumPaymentBalance = loan.principal; // Track balance if only minimum payments were made
+    // Use payments start date as the baseline - balance starts at principal when payments begin
+    let actualBalance = calculateEffectiveStartingBalance(loan);
+    let minimumPaymentBalance = calculateEffectiveStartingBalance(loan); // Track balance if only minimum payments were made
     const maxMonths = loan.termMonths > 0 ? loan.termMonths : 120; // Cap at 10 years for minimum payment loans
 
     // Sort payments by date for chronological processing
@@ -32,50 +34,27 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
           return payment.loanId === loan.id && paymentDate <= paymentsStart;
         });
 
-        let initialBalance = loan.principal;
+        let initialBalance = calculateEffectiveStartingBalance(loan);
         let totalPaymentsThisMonth = 0;
         let totalInterestThisMonth = 0;
 
         if (startDatePayments.length > 0) {
-          // Process all payments made on or before the payments start date using daily interest
+          // Process all payments made on or before the payments start date
           totalPaymentsThisMonth = startDatePayments.reduce(
             (sum, payment) => sum + payment.amount,
             0
           );
 
-          // Calculate interest from loan start to payments start date
-          const interestOwed = calculateInterestBetweenDates(
-            initialBalance,
-            loan.interestRate,
-            new Date(loan.startDate),
-            paymentsStartDate,
-            loan.interestAccrualMethod
-          );
-
-          totalInterestThisMonth = Math.min(
-            interestOwed,
-            totalPaymentsThisMonth
-          );
-          const principalPayment = Math.max(
-            0,
-            totalPaymentsThisMonth - interestOwed
-          );
+          // No interest calculation needed - payments start date is the baseline
+          // All payments go to principal since no interest has accrued yet
+          const principalPayment = totalPaymentsThisMonth;
           initialBalance = Math.max(0, initialBalance - principalPayment);
+          totalInterestThisMonth = 0; // No interest accrued before payments start
         } else if (monthlyPaymentAmount > 0) {
           // If no actual payments on or before start date, apply scheduled payment
-          const interestOwed = calculateInterestBetweenDates(
-            initialBalance,
-            loan.interestRate,
-            new Date(loan.startDate),
-            paymentsStartDate,
-            loan.interestAccrualMethod
-          );
-
-          totalInterestThisMonth = Math.min(interestOwed, monthlyPaymentAmount);
-          const principalPayment = Math.max(
-            0,
-            monthlyPaymentAmount - interestOwed
-          );
+          // No interest calculation needed - payments start date is the baseline
+          totalInterestThisMonth = 0; // No interest accrued before payments start
+          const principalPayment = monthlyPaymentAmount;
           initialBalance = Math.max(0, initialBalance - principalPayment);
         }
 

@@ -33,6 +33,7 @@ export interface Loan {
   minimumPayment?: number; // Required for credit cards and student loans
   paymentDueDay?: number; // Day of month when payment is due (1-31)
   interestAccrualMethod: InterestAccrualMethod; // How interest is calculated
+  isSubsidized?: boolean; // For student loans - affects interest accrual during grace periods
   createdAt: Date;
   updatedAt: Date;
 }
