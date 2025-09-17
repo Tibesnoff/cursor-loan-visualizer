@@ -1,0 +1,159 @@
+.monthly-payment-adjuster {
+  margin-bottom: 24px;
+}
+
+.monthly-payment-adjuster .adjustment-badge {
+  background: #52c41a;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.payment-adjuster-content {
+  min-height: 120px;
+}
+
+.editing-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.payment-input {
+  width: 100%;
+  font-size: 16px;
+}
+
+.reason-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.reason-input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.validation-alert {
+  margin-top: 8px;
+}
+
+.comparison-stats {
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.display-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adjustment-details {
+  margin-top: 16px;
+}
+
+.adjustment-info {
+  margin-bottom: 16px;
+}
+
+.impact-stats {
+  background: #f6ffed;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #b7eb8f;
+}
+
+.impact-stats h4 {
+  margin: 0 0 16px 0;
+  color: #389e0d;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .monthly-payment-adjuster .ant-card-extra {
+    margin-top: 16px;
+  }
+  
+  .comparison-stats .ant-row,
+  .impact-stats .ant-row {
+    flex-direction: column;
+  }
+  
+  .comparison-stats .ant-col,
+  .impact-stats .ant-col {
+    margin-bottom: 8px;
+  }
+}
+
+/* Animation for smooth transitions */
+.payment-adjuster-content {
+  transition: all 0.3s ease;
+}
+
+.editing-mode,
+.display-mode {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button styling - now handled by Button component */
+
+/* Statistic styling */
+.monthly-payment-adjuster .ant-statistic-title {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.monthly-payment-adjuster .ant-statistic-content {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Alert styling */
+.monthly-payment-adjuster .ant-alert {
+  border-radius: 6px;
+}
+
+.monthly-payment-adjuster .ant-alert-info {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.monthly-payment-adjuster .ant-alert-error {
+  background: #fff2f0;
+  border-color: #ffccc7;
+}

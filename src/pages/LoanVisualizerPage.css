@@ -312,15 +312,4 @@
   align-items: center;
 }
 
-.delete-loan-button {
-  font-weight: 500;
-  padding: 8px 16px;
-  height: auto;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.delete-loan-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
-}
+/* Delete loan button styling now handled by DangerButton component */

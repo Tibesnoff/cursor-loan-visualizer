@@ -700,3 +700,4 @@ const expensiveValue = useMemo(() => {
 - [TypeScript Best Practices](https://typescript-eslint.io/rules/)
 - [CSS Best Practices](https://developer.mozilla.org/en-US/docs/Web/CSS)
 - [Git Best Practices](https://www.atlassian.com/git/tutorials/comparing-workflows)
+

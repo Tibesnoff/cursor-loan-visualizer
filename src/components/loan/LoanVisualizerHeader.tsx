@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Popconfirm } from 'antd';
+import { Popconfirm } from 'antd';
+import { PrimaryButton, DangerButton } from '../ui/Button';
 import { ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 interface LoanVisualizerHeaderProps {
@@ -17,23 +18,22 @@ export const LoanVisualizerHeader: React.FC<LoanVisualizerHeaderProps> = ({
 }) => {
     return (
         <div className="visualizer-header">
-            <Button
+            <PrimaryButton
                 icon={<ArrowLeftOutlined />}
                 onClick={onBack}
                 className="back-button"
             >
                 Back to Loans
-            </Button>
+            </PrimaryButton>
             <h1 className="visualizer-title">{loanName}</h1>
             <div className="header-actions">
-                <Button
-                    type="primary"
+                <PrimaryButton
                     icon={<PlusOutlined />}
                     onClick={onAddPayment}
                     className="add-payment-button"
                 >
                     Add Payment
-                </Button>
+                </PrimaryButton>
                 <Popconfirm
                     title="Delete Loan"
                     description="Are you sure you want to delete this loan? This action cannot be undone."
@@ -42,13 +42,12 @@ export const LoanVisualizerHeader: React.FC<LoanVisualizerHeaderProps> = ({
                     cancelText="Cancel"
                     okButtonProps={{ danger: true }}
                 >
-                    <Button
-                        danger
+                    <DangerButton
                         icon={<DeleteOutlined />}
                         className="delete-loan-button"
                     >
                         Delete Loan
-                    </Button>
+                    </DangerButton>
                 </Popconfirm>
             </div>
         </div>

@@ -9,9 +9,17 @@ import {
   limitArraySize,
 } from '../utils/memoryUtils';
 
-export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
+export const usePaymentSchedule = (
+  loan: Loan,
+  loanPayments: Payment[],
+  adjustedMonthlyPayment?: number
+) => {
   const { monthlyRate, paymentsStartDate, monthlyPaymentAmount } =
     useLoanCalculations(loan, loanPayments);
+
+  // Use adjusted payment amount if provided, otherwise use calculated amount
+  const effectiveMonthlyPayment =
+    adjustedMonthlyPayment ?? monthlyPaymentAmount;
 
   // Create cleanup function for this hook
   const cleanup = useRef(createCleanupFunction());
@@ -77,11 +85,11 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
           const principalPayment = totalPaymentsThisMonth;
           initialBalance = Math.max(0, initialBalance - principalPayment);
           totalInterestThisMonth = 0; // No interest accrued before payments start
-        } else if (monthlyPaymentAmount > 0) {
+        } else if (effectiveMonthlyPayment > 0) {
           // If no actual payments on or before start date, apply scheduled payment
           // No interest calculation needed - payments start date is the baseline
           totalInterestThisMonth = 0; // No interest accrued before payments start
-          const principalPayment = monthlyPaymentAmount;
+          const principalPayment = effectiveMonthlyPayment;
           initialBalance = Math.max(0, initialBalance - principalPayment);
         }
 
@@ -98,11 +106,11 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
 
         // Calculate minimum payment balance for month 0 (always uses scheduled payment)
         let minimumPaymentBalanceMonth0 = effectiveStartingBalance;
-        if (monthlyPaymentAmount > 0) {
+        if (effectiveMonthlyPayment > 0) {
           const interestOwed = minimumPaymentBalanceMonth0 * monthlyRate;
           const principalPayment = Math.max(
             0,
-            monthlyPaymentAmount - interestOwed
+            effectiveMonthlyPayment - interestOwed
           );
           minimumPaymentBalanceMonth0 = Math.max(
             0,
@@ -111,7 +119,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
         }
 
         // If no actual payments and no scheduled payment, both lines should be the same
-        if (totalPaymentsThisMonth === 0 && monthlyPaymentAmount === 0) {
+        if (totalPaymentsThisMonth === 0 && effectiveMonthlyPayment === 0) {
           initialBalance = minimumPaymentBalanceMonth0;
         }
 
@@ -121,12 +129,12 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
           minimumPaymentBalance: minimumPaymentBalanceMonth0,
           startingBalance: effectiveStartingBalance,
           totalPayments: totalPaymentsThisMonth,
-          scheduledPayment: monthlyPaymentAmount,
+          scheduledPayment: effectiveMonthlyPayment,
           paymentUsed:
             totalPaymentsThisMonth > 0
               ? totalPaymentsThisMonth
-              : monthlyPaymentAmount > 0
-                ? monthlyPaymentAmount
+              : effectiveMonthlyPayment > 0
+                ? effectiveMonthlyPayment
                 : 0,
           totalInterest: totalInterestThisMonth,
           monthName,
@@ -177,9 +185,9 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
       if (actualPayment && actualPayment > 0) {
         // Use actual payment amount
         paymentToUse = actualPayment;
-      } else if (monthlyPaymentAmount > 0) {
+      } else if (effectiveMonthlyPayment > 0) {
         // Use scheduled payment amount (minimum or monthly)
-        paymentToUse = monthlyPaymentAmount;
+        paymentToUse = effectiveMonthlyPayment;
       }
 
       // Calculate actual balance (with actual payments or scheduled payments)
@@ -197,7 +205,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
       }
 
       // Calculate minimum payment balance for this month (always uses minimum payment)
-      if (monthlyPaymentAmount > 0) {
+      if (effectiveMonthlyPayment > 0) {
         const interestOwed = calculateInterestBetweenDates(
           minimumPaymentBalance,
           loan.interestRate,
@@ -207,7 +215,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
         );
         const principalPayment = Math.max(
           0,
-          monthlyPaymentAmount - interestOwed
+          effectiveMonthlyPayment - interestOwed
         );
         minimumPaymentBalance = Math.max(
           0,
@@ -232,7 +240,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
         minimumPaymentBalance: minimumPaymentBalance,
         startingBalance: startingBalance,
         totalPayments: actualPayment || 0,
-        scheduledPayment: monthlyPaymentAmount,
+        scheduledPayment: effectiveMonthlyPayment,
         paymentUsed: paymentToUse,
         totalInterest: totalInterestThisMonth,
         monthName,
@@ -251,7 +259,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
     maxMonths,
     effectiveStartingBalance,
     monthlyRate,
-    monthlyPaymentAmount,
+    effectiveMonthlyPayment,
     paymentsStartDate,
   ]);
 

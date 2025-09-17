@@ -65,7 +65,7 @@ export const PieChart: React.FC<PieChartProps> = ({
                         height={36}
                         formatter={(value: string, entry: { payload?: { value?: number }; color?: string }) => {
                             const total = data.reduce((sum, item) => sum + item.value, 0);
-                            const percentage = ((entry.payload?.value || 0) / total) * 100;
+                            const percentage = (((entry.payload?.value || 0) / total) * 100).toFixed(2);
                             return (
                                 <span style={{ color: entry.color || '#000' }}>
                                     {value} ({percentage}%)

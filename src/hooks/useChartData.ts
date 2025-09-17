@@ -69,7 +69,7 @@ export const useChartData = ({
       let balance = loan.principal;
       let totalInterest = 0;
       let months = 0;
-      const maxMonths = 600; // Cap at 50 years to prevent infinite loops
+      const maxMonths = 360; // Cap at 30 years for realistic calculations
 
       // Process existing payments chronologically
       for (const payment of sortedPayments) {
@@ -80,27 +80,47 @@ export const useChartData = ({
         balance = Math.max(0, balance - principalPayment);
       }
 
-      // Now simulate future minimum payments until balance reaches 0
-      // Use iteration limit to prevent infinite loops
-      withIterationLimit(
-        () => {
-          while (balance > 0.01 && months < maxMonths) {
-            const interestPayment = balance * monthlyRate;
-            const principalPayment = Math.min(
-              (loan.minimumPayment || 0) - interestPayment,
-              balance
-            );
+      // Check if minimum payment can actually pay off the loan
+      const minimumPayment = loan.minimumPayment || 0;
+      const monthlyInterestOnPrincipal = loan.principal * monthlyRate;
 
-            totalInterest += interestPayment;
-            balance -= principalPayment;
-            months++;
-          }
-        },
-        maxMonths,
-        'Minimum payment calculation exceeded maximum iterations'
-      );
+      if (minimumPayment < monthlyInterestOnPrincipal) {
+        // If minimum payment is less than interest, calculate what payment would be needed
+        // to pay off the loan in 30 years, and use that for the calculation
+        const requiredPayment =
+          (loan.principal * monthlyRate * Math.pow(1 + monthlyRate, 360)) /
+          (Math.pow(1 + monthlyRate, 360) - 1);
 
-      projectedTotalInterest = totalInterest;
+        // Calculate total interest with the required payment
+        projectedTotalInterest = requiredPayment * 360 - loan.principal;
+      } else {
+        // Minimum payment is sufficient, calculate normally
+        withIterationLimit(
+          () => {
+            while (balance > 0.01 && months < maxMonths) {
+              const interestPayment = balance * monthlyRate;
+              const principalPayment = Math.max(
+                0,
+                minimumPayment - interestPayment
+              );
+
+              totalInterest += Math.min(interestPayment, minimumPayment);
+              balance = Math.max(0, balance - principalPayment);
+
+              // If minimum payment is less than interest, add the unpaid interest to balance
+              if (minimumPayment < interestPayment) {
+                balance += interestPayment - minimumPayment;
+              }
+
+              months++;
+            }
+          },
+          maxMonths,
+          'Minimum payment calculation exceeded maximum iterations'
+        );
+
+        projectedTotalInterest = totalInterest;
+      }
     }
 
     const totalCost = loan.principal + projectedTotalInterest;

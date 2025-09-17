@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Tooltip, Checkbox } from 'antd';
+import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Tooltip, Checkbox } from 'antd';
+import { PrimaryButton, DangerButton } from '../ui/Button';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addLoan } from '../../store/slices/loansSlice';
@@ -371,17 +372,15 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                 )}
 
                 <div className="form-actions">
-                    <Button onClick={handleCancel} className="cancel-button">
+                    <DangerButton onClick={handleCancel}>
                         Cancel
-                    </Button>
-                    <Button
-                        type="primary"
+                    </DangerButton>
+                    <PrimaryButton
                         htmlType="submit"
                         loading={loading}
-                        className="submit-button"
                     >
                         Add Loan
-                    </Button>
+                    </PrimaryButton>
                 </div>
             </Form>
         </Modal>

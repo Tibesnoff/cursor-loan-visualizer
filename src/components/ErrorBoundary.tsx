@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Result, Button } from 'antd';
+import { Result } from 'antd';
+import { PrimaryButton } from './ui/Button';
 import { createError, ErrorType, logError } from '../utils/errorHandling';
 
 interface Props {
@@ -57,12 +58,12 @@ export class ErrorBoundary extends Component<Props, State> {
                     title="Something went wrong"
                     subTitle="An unexpected error occurred. Please try refreshing the page."
                     extra={[
-                        <Button type="primary" key="retry" onClick={this.handleRetry}>
+                        <PrimaryButton key="retry" onClick={this.handleRetry}>
                             Try Again
-                        </Button>,
-                        <Button key="refresh" onClick={() => window.location.reload()}>
+                        </PrimaryButton>,
+                        <PrimaryButton key="refresh" onClick={() => window.location.reload()}>
                             Refresh Page
-                        </Button>,
+                        </PrimaryButton>,
                     ]}
                 >
                     {process.env.NODE_ENV === 'development' && this.state.error && (

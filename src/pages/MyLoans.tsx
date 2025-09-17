@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tooltip, Popconfirm, message } from 'antd';
+import { Table, Space, Tooltip, Popconfirm, message } from 'antd';
+import { PrimaryButton, DangerButton } from '../components/ui/Button';
 import { QuestionCircleOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -172,13 +173,12 @@ export const MyLoans: React.FC = () => {
             key: 'actions',
             render: (_: unknown, record: Loan) => (
                 <Space>
-                    <Button
-                        type="link"
+                    <PrimaryButton
                         size="small"
                         onClick={() => handleViewLoan(record.id)}
                     >
                         View
-                    </Button>
+                    </PrimaryButton>
                     <Popconfirm
                         title="Delete Loan"
                         description="Are you sure you want to delete this loan? This action cannot be undone."
@@ -187,9 +187,9 @@ export const MyLoans: React.FC = () => {
                         cancelText="Cancel"
                         okButtonProps={{ danger: true }}
                     >
-                        <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+                        <DangerButton size="small" icon={<DeleteOutlined />}>
                             Delete
-                        </Button>
+                        </DangerButton>
                     </Popconfirm>
                 </Space>
             ),
@@ -203,12 +203,19 @@ export const MyLoans: React.FC = () => {
                     My Loans
                 </h1>
                 <div className="header-buttons">
-                    <button className="add-payment-button" onClick={handleAddPayment}>
-                        <PlusOutlined /> Add Payment
-                    </button>
-                    <button className="add-loan-button" onClick={handleAddLoan}>
+                    <PrimaryButton
+                        className="add-payment-button"
+                        onClick={handleAddPayment}
+                        icon={<PlusOutlined />}
+                    >
+                        Add Payment
+                    </PrimaryButton>
+                    <PrimaryButton
+                        className="add-loan-button"
+                        onClick={handleAddLoan}
+                    >
                         Add New Loan
-                    </button>
+                    </PrimaryButton>
                 </div>
             </div>
 

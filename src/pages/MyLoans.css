@@ -114,21 +114,7 @@
   color: #40a9ff;
 }
 
-.delete-button {
-  color: #ff4d4f;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  margin-left: 8px;
-}
-
-.delete-button:hover {
-  background: #fff2f0;
-  color: #ff7875;
-}
+/* Delete button styling now handled by DangerButton component */
 
 .empty-state {
   text-align: center;

@@ -9,6 +9,7 @@ import {
     PaymentStatisticsCards,
     LoanDetailsCard
 } from './index';
+import { MonthlyPaymentAdjuster } from './MonthlyPaymentAdjuster';
 import { BalanceChart, PieChart, OneTimePaymentChart } from '../charts';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { usePaymentSchedule, useChartData, useLoanCalculations } from '../../hooks';
@@ -22,6 +23,7 @@ interface LoanVisualizerProps {
 
 export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) => {
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+    const [adjustedMonthlyPayment, setAdjustedMonthlyPayment] = useState<number | undefined>(undefined);
     const { payments } = useAppSelector((state) => state.payments);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -58,13 +60,13 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
         }
 
         return {
-            monthlyPayment,
+            monthlyPayment: adjustedMonthlyPayment ?? monthlyPayment,
         };
-    }, [loan]);
+    }, [loan, adjustedMonthlyPayment]);
 
     // Use consolidated hook for calculations
     const { actualLoanStats } = useLoanCalculations(loan, loanPayments);
-    const paymentScheduleData = usePaymentSchedule(loan, loanPayments);
+    const paymentScheduleData = usePaymentSchedule(loan, loanPayments, adjustedMonthlyPayment);
 
     // Use chart data hook
     const { totalCostData, totalCost } = useChartData({
@@ -103,6 +105,15 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                     </div>
                 )}
 
+                {/* Monthly Payment Adjustment Section */}
+                <div className="section-group">
+                    <MonthlyPaymentAdjuster
+                        loan={loan}
+                        loanPayments={loanPayments}
+                        onPaymentChange={setAdjustedMonthlyPayment}
+                    />
+                </div>
+
                 {/* Charts Section */}
                 <div className="section-group">
                     <h2 className="section-title">Visualizations</h2>
@@ -126,7 +137,7 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                         <Col xs={24} sm={12}>
                             <OneTimePaymentChart
                                 monthlyPayment={loanDetails.monthlyPayment}
-                                principal={loan.principal}
+                                currentBalance={actualLoanStats.remainingBalance}
                                 interestRate={loan.interestRate}
                             />
                         </Col>

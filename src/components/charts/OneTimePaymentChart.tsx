@@ -6,24 +6,24 @@ import './Charts.css';
 
 interface OneTimePaymentChartProps {
     monthlyPayment: number;
-    principal: number;
+    currentBalance: number;
     interestRate: number;
 }
 
 export const OneTimePaymentChart: React.FC<OneTimePaymentChartProps> = ({
     monthlyPayment,
-    principal,
+    currentBalance,
     interestRate
 }) => {
     const paymentData = [
         {
             name: 'To Principal',
-            value: Math.max(0, monthlyPayment - (principal * interestRate / 100 / 12)),
+            value: Math.max(0, monthlyPayment - (currentBalance * interestRate / 100 / 12)),
             color: '#52c41a'
         },
         {
             name: 'To Interest',
-            value: Math.max(principal * interestRate / 100 / 12, 0.01),
+            value: Math.max(currentBalance * interestRate / 100 / 12, 0.01),
             color: '#fa8c16'
         },
     ];
@@ -60,7 +60,7 @@ export const OneTimePaymentChart: React.FC<OneTimePaymentChartProps> = ({
                         height={36}
                         formatter={(value: string, entry: { payload?: { value?: number }; color?: string }) => {
                             const total = paymentData.reduce((sum, item) => sum + item.value, 0);
-                            const percentage = ((entry.payload?.value || 0) / total) * 100;
+                            const percentage = (((entry.payload?.value || 0) / total) * 100).toFixed(2);
                             return (
                                 <span style={{ color: entry.color || '#000' }}>
                                     {value} ({percentage}%)

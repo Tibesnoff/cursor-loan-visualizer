@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Divider, Tooltip } from 'antd';
+import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Divider, Tooltip } from 'antd';
+import { PrimaryButton, DangerButton } from '../ui/Button';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addPayment } from '../../store/slices/paymentsSlice';
@@ -235,17 +236,15 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
                 </Form.Item>
 
                 <div className="form-actions">
-                    <Button onClick={handleCancel} className="cancel-button">
+                    <DangerButton onClick={handleCancel}>
                         Cancel
-                    </Button>
-                    <Button
-                        type="primary"
+                    </DangerButton>
+                    <PrimaryButton
                         htmlType="submit"
                         loading={loading}
-                        className="submit-button"
                     >
                         Add Payment
-                    </Button>
+                    </PrimaryButton>
                 </div>
             </Form>
         </Modal>

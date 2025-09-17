@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, Button, message } from 'antd';
+import { Modal, Form, Input, message } from 'antd';
+import { PrimaryButton } from '../ui/Button';
 import { useAppDispatch } from '../../hooks/redux';
 import { setUser } from '../../store/slices/userSlice';
 import { createUser } from '../../utils/dataUtils';
@@ -72,14 +73,13 @@ export const UserSetup: React.FC<UserSetupProps> = ({ visible, onComplete }) => 
                     </Form.Item>
 
                     <div className="user-setup-actions">
-                        <Button
-                            type="primary"
+                        <PrimaryButton
                             htmlType="submit"
                             loading={loading}
                             className="user-setup-submit"
                         >
                             Create Profile
-                        </Button>
+                        </PrimaryButton>
                     </div>
                 </Form>
             </div>

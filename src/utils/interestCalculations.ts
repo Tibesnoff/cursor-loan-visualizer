@@ -64,7 +64,8 @@ export const calculateInterest = (
       } else {
         // Monthly interest calculation (traditional loans)
         const monthlyRate = interestRate / 100 / 12;
-        const months = days / 30.44; // Average days per month
+        // For monthly interest, calculate based on full months only
+        const months = Math.floor(days / 30.44);
         result = balance * monthlyRate * months;
       }
 
@@ -125,11 +126,22 @@ export const calculateInterestBetweenDates = (
         );
       }
 
-      const days = Math.ceil(
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      if (method === 'daily') {
+        const days = Math.ceil(
+          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return calculateInterest(balance, interestRate, days, method);
+      } else {
+        // For monthly interest, calculate based on full months
+        const monthlyRate = interestRate / 100 / 12;
+        const startYear = startDate.getFullYear();
+        const startMonth = startDate.getMonth();
+        const endYear = endDate.getFullYear();
+        const endMonth = endDate.getMonth();
 
-      return calculateInterest(balance, interestRate, days, method);
+        const months = (endYear - startYear) * 12 + (endMonth - startMonth);
+        return balance * monthlyRate * months;
+      }
     },
     0, // Fallback to 0 if calculation fails
     'Failed to calculate interest between dates',

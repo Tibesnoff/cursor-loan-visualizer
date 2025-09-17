@@ -82,3 +82,4 @@ export const GlobalErrorHandler: React.FC = () => {
 
     return null; // This component doesn't render anything
 };
+
