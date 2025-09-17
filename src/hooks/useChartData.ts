@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import {
   normalizeLoanDates,
@@ -7,10 +7,10 @@ import {
 } from '../utils/consolidatedCalculations';
 import {
   createStableArray,
-  createCleanupFunction,
   limitArraySize,
   withIterationLimit,
 } from '../utils/memoryUtils';
+import { useCleanup } from './useCleanup';
 
 interface UseChartDataProps {
   loan: Loan;
@@ -21,16 +21,8 @@ export const useChartData = ({
   loan,
   loanPayments = [],
 }: UseChartDataProps) => {
-  // Create cleanup function for this hook
-  const cleanup = useRef(createCleanupFunction());
-
-  // Cleanup on unmount
-  useEffect(() => {
-    const cleanupFn = cleanup.current;
-    return () => {
-      cleanupFn.cleanup();
-    };
-  }, []);
+  // Use shared cleanup hook
+  useCleanup();
 
   // Memoize filtered and sorted payments to prevent unnecessary recalculations
   const relevantPayments = useMemo(() => {

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Loan } from '../../types';
+import { handleReduxError } from '../../utils/reduxSliceFactory';
 
 interface LoansState {
   loans: Loan[];
@@ -22,6 +23,9 @@ const loansSlice = createSlice({
     },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
+    },
+    clearError: state => {
+      state.error = null;
     },
     setLoans: (state, action: PayloadAction<Loan[]>) => {
       state.loans = action.payload;
@@ -47,8 +51,7 @@ const loansSlice = createSlice({
         state.loans.push(action.payload);
         state.error = null;
       } catch (error) {
-        state.error = 'Failed to add loan';
-        console.error('Error adding loan:', error);
+        handleReduxError(state, error, 'Failed to add loan');
       }
     },
     updateLoan: (
@@ -76,8 +79,7 @@ const loansSlice = createSlice({
         };
         state.error = null;
       } catch (error) {
-        state.error = 'Failed to update loan';
-        console.error('Error updating loan:', error);
+        handleReduxError(state, error, 'Failed to update loan');
       }
     },
     deleteLoan: (state, action: PayloadAction<string>) => {
@@ -97,8 +99,7 @@ const loansSlice = createSlice({
 
         state.error = null;
       } catch (error) {
-        state.error = 'Failed to delete loan';
-        console.error('Error deleting loan:', error);
+        handleReduxError(state, error, 'Failed to delete loan');
       }
     },
     clearLoans: state => {
@@ -111,6 +112,7 @@ const loansSlice = createSlice({
 export const {
   setLoading,
   setError,
+  clearError,
   setLoans,
   addLoan,
   updateLoan,

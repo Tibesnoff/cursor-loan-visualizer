@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import {
   normalizeLoanDates,
@@ -13,23 +13,12 @@ import {
   safeCalculate,
   logError,
 } from '../utils/errorHandling';
-import {
-  createStableArray,
-  createCleanupFunction,
-  limitArraySize,
-} from '../utils/memoryUtils';
+import { createStableArray, limitArraySize } from '../utils/memoryUtils';
+import { useCleanup } from './useCleanup';
 
 export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
-  // Create cleanup function for this hook
-  const cleanup = useRef(createCleanupFunction());
-
-  // Cleanup on unmount
-  useEffect(() => {
-    const cleanupFn = cleanup.current;
-    return () => {
-      cleanupFn.cleanup();
-    };
-  }, []);
+  // Use shared cleanup hook
+  useCleanup();
 
   // Input validation
   if (!loan) {

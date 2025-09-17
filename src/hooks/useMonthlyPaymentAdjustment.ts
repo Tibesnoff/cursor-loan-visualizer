@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
-import { createCleanupFunction } from '../utils/memoryUtils';
 import { safeCalculate } from '../utils/errorHandling';
+import { useCleanup } from './useCleanup';
 
 interface MonthlyPaymentAdjustment {
   readonly loanId: string;
@@ -53,16 +53,8 @@ export const useMonthlyPaymentAdjustment = ({
   loan,
   loanPayments = [],
 }: UseMonthlyPaymentAdjustmentProps): UseMonthlyPaymentAdjustmentReturn => {
-  // Create cleanup function for this hook
-  const cleanup = useRef(createCleanupFunction());
-
-  // Cleanup on unmount
-  useEffect(() => {
-    const cleanupFn = cleanup.current;
-    return () => {
-      cleanupFn.cleanup();
-    };
-  }, []);
+  // Use shared cleanup hook
+  useCleanup();
 
   // Get original monthly payment calculation
   const { monthlyPaymentAmount } = useLoanCalculations(loan, loanPayments);

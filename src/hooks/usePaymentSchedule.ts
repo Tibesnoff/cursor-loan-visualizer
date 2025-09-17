@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
 import {
@@ -7,11 +7,8 @@ import {
   calculateEffectiveStartingBalance,
   applyPaymentToBalance,
 } from '../utils/consolidatedCalculations';
-import {
-  createStableArray,
-  createCleanupFunction,
-  limitArraySize,
-} from '../utils/memoryUtils';
+import { createStableArray, limitArraySize } from '../utils/memoryUtils';
+import { useCleanup } from './useCleanup';
 
 export const usePaymentSchedule = (
   loan: Loan,
@@ -29,16 +26,8 @@ export const usePaymentSchedule = (
   const effectiveMonthlyPayment =
     adjustedMonthlyPayment ?? monthlyPaymentAmount;
 
-  // Create cleanup function for this hook
-  const cleanup = useRef(createCleanupFunction());
-
-  // Cleanup on unmount
-  useEffect(() => {
-    const cleanupFn = cleanup.current;
-    return () => {
-      cleanupFn.cleanup();
-    };
-  }, []);
+  // Use shared cleanup hook
+  useCleanup();
 
   // Memoize sorted payments to prevent unnecessary sorting on every render
   const sortedPayments = useMemo(() => {
