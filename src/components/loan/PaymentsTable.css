@@ -1,118 +1,128 @@
 /* Payments Table Styles */
 
-.payments-table {
+.payments-table-collapse {
   margin-top: 16px;
+  border: none !important;
+  background: transparent;
+  border-radius: 0 !important;
 }
 
-/* Collapsible table styles */
-.payments-table .ant-collapse {
-  border: 1px solid #d9d9d9;
-  border-radius: 8px;
-  background-color: #fff;
+.payments-table-collapse .ant-collapse-item {
+  border: none !important;
+  background: transparent;
+  border-radius: 0 !important;
 }
 
-.payments-table .ant-collapse-item {
-  border-bottom: none;
-}
-
-.payments-table .ant-collapse-header {
-  background-color: #fafafa;
-  border-radius: 8px 8px 0 0;
+.payments-table-collapse .ant-collapse-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 0 !important;
   padding: 12px 16px;
   font-weight: 600;
-  color: #1890ff;
+  color: #495057;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
-.payments-table .ant-collapse-content {
-  border-radius: 0 0 8px 8px;
+.payments-table-collapse .ant-collapse-header:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.payments-table .ant-collapse-content-box {
-  padding: 16px;
+.payments-table-collapse .ant-collapse-content {
+  border: 1px solid #dee2e6 !important;
+  border-top: none !important;
+  border-radius: 0 !important;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.payments-table .ant-table-thead > tr > th {
-  background-color: #fafafa;
+.payments-table-collapse .ant-collapse-content-box {
+  padding: 0 !important;
+}
+
+.payments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.payments-table-collapse .ant-table {
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.payments-table-collapse .ant-table-container {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.payments-table-collapse .ant-table-thead > tr > th:first-child {
+  border-top-left-radius: 0 !important;
+}
+
+.payments-table-collapse .ant-table-thead > tr > th:last-child {
+  border-top-right-radius: 0 !important;
+}
+
+.payments-table-collapse .ant-table-thead > tr > th {
+  background-color: #f8f9fa !important;
   font-weight: 600;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid #dee2e6 !important;
+  color: #495057;
+  border-radius: 0 !important;
 }
 
-.payments-table .ant-table-tbody > tr > td {
-  border-bottom: 1px solid #f0f0f0;
+.payments-table-collapse .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f1f3f4;
 }
 
-.payments-table .ant-table-tbody > tr:hover > td {
-  background-color: #f5f5f5;
+.payments-table-collapse .ant-table-tbody > tr:hover > td {
+  background-color: #f8f9fa;
 }
 
-.payments-table .ant-table-summary {
-  background-color: #f9f9f9;
-  font-weight: 600;
-}
-
-.payments-table .ant-table-summary .ant-table-cell {
-  border-top: 2px solid #d9d9d9;
-  background-color: #f9f9f9;
-}
-
-/* Action buttons */
-.payments-table .ant-btn-text {
-  padding: 4px 8px;
-  height: auto;
-  border: none;
-  box-shadow: none;
-}
-
-.payments-table .ant-btn-text:hover {
-  background-color: #f5f5f5;
-  border-radius: 4px;
-}
-
-.payments-table .ant-btn-text.ant-btn-dangerous:hover {
-  background-color: #fff2f0;
-  color: #ff4d4f;
+/* Action buttons - using our custom Button component */
+.payments-table-collapse .ant-btn {
+  margin: 0 4px;
+  min-width: 60px;
+  height: 32px;
+  padding: 6px 12px;
 }
 
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .payments-table .ant-table {
+  .payments-table-collapse .ant-table {
     font-size: 12px;
   }
   
-  .payments-table .ant-table-thead > tr > th,
-  .payments-table .ant-table-tbody > tr > td {
+  .payments-table-collapse .ant-table-thead > tr > th,
+  .payments-table-collapse .ant-table-tbody > tr > td {
     padding: 8px 4px;
   }
 }
 
 /* Empty state */
-.payments-table .empty-state {
+.payments-table-collapse .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #999;
-  background-color: #fafafa;
-  border-radius: 8px;
-  margin: 16px 0;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  margin: 0;
 }
 
-.payments-table .empty-state p {
+.payments-table-collapse .empty-state p {
   margin: 8px 0;
   font-size: 14px;
 }
 
-/* Summary row styling */
-.payments-table .ant-table-summary-row {
-  background-color: #f9f9f9;
-}
-
-.payments-table .ant-table-summary-row td {
-  font-weight: 600;
-  border-top: 2px solid #d9d9d9;
-}
 
 /* Tag styling */
-.payments-table .ant-tag {
+.payments-table-collapse .ant-tag {
   margin: 0;
   font-size: 11px;
   padding: 2px 6px;
@@ -120,17 +130,17 @@
 }
 
 /* Amount styling */
-.payments-table .amount-positive {
+.payments-table-collapse .amount-positive {
   color: #52c41a;
   font-weight: 600;
 }
 
-.payments-table .amount-negative {
+.payments-table-collapse .amount-negative {
   color: #ff4d4f;
   font-weight: 600;
 }
 
-.payments-table .amount-neutral {
+.payments-table-collapse .amount-neutral {
   color: #1890ff;
   font-weight: 600;
 }

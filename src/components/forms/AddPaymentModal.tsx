@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Divider, Tooltip, Alert } from 'antd';
-import { PrimaryButton, DangerButton } from '../ui/Button';
+import { Form, Input, InputNumber, DatePicker, Select, message, Divider, Tooltip, Alert } from 'antd';
+import { PrimaryButton, DangerButton, CustomModal } from '../ui';
 import { QuestionCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addPayment } from '../../store/slices/paymentsSlice';
@@ -8,7 +8,6 @@ import { createPayment, getRemainingBalanceForLoan } from '../../utils/dataUtils
 import { isPaymentLate, getDaysLate, getPreviousPaymentDueDate } from '../../utils/loanInterestRules';
 import { normalizeLoanDates, applyPaymentToBalance } from '../../utils/consolidatedCalculations';
 import dayjs from 'dayjs';
-import './AddPaymentModal.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -161,13 +160,11 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
     };
 
     return (
-        <Modal
+        <CustomModal
             title="Add New Payment"
-            open={visible}
+            visible={visible}
             onCancel={handleCancel}
-            footer={null}
             width={600}
-            className="add-payment-modal"
         >
             <Form
                 form={form}
@@ -320,6 +317,6 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
                     </PrimaryButton>
                 </div>
             </Form>
-        </Modal>
+        </CustomModal>
     );
 };

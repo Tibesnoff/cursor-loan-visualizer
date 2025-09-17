@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Tooltip, Checkbox } from 'antd';
-import { PrimaryButton, DangerButton } from '../ui/Button';
+import { Form, Input, InputNumber, DatePicker, Select, message, Tooltip, Checkbox } from 'antd';
+import { PrimaryButton, DangerButton, CustomModal } from '../ui';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addLoan } from '../../store/slices/loansSlice';
@@ -8,7 +8,6 @@ import { createLoan } from '../../utils/dataUtils';
 import { getLoanTypesForForm } from '../../utils/loanUtils';
 import { LoanType, InterestAccrualMethod } from '../../types';
 import dayjs from 'dayjs';
-import './AddLoanModal.css';
 
 const { Option } = Select;
 
@@ -97,13 +96,11 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
     };
 
     return (
-        <Modal
+        <CustomModal
             title="Add New Loan"
-            open={visible}
+            visible={visible}
             onCancel={handleCancel}
-            footer={null}
             width={600}
-            className="add-loan-modal"
         >
             <Form
                 form={form}
@@ -122,6 +119,7 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                         </span>
                     }
                     rules={[{ required: true, message: 'Please select a loan type' }]}
+                    className="form-item-full"
                 >
                     <Select
                         placeholder="Select loan type"
@@ -432,6 +430,6 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                     </PrimaryButton>
                 </div>
             </Form>
-        </Modal>
+        </CustomModal>
     );
 };

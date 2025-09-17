@@ -2,6 +2,7 @@
 .user-setup-modal .ant-modal-header {
   background: linear-gradient(135deg, #722ed1, #9254de);
   border-radius: 8px 8px 0 0;
+  padding: 16px 24px;
 }
 
 .user-setup-modal .ant-modal-title {
@@ -11,10 +12,17 @@
 
 .user-setup-modal .ant-modal-close {
   color: white;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
 }
 
 .user-setup-modal .ant-modal-close:hover {
   color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
 
 .user-setup-modal .ant-form-item-label > label {

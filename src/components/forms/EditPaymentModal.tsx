@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, message, Space, Button } from 'antd';
+import { Form, Input, InputNumber, DatePicker, message, Space, Button } from 'antd';
+import { CustomModal, DangerButton, PrimaryButton } from '../ui';
 import { useAppDispatch } from '../../hooks/redux';
 import { updatePayment, deletePayment } from '../../store/slices/paymentsSlice';
 import { Payment } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 import dayjs from 'dayjs';
-import './EditPaymentModal.css';
 
 const { TextArea } = Input;
 
@@ -85,50 +85,48 @@ export const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
     if (!payment) return null;
 
     return (
-        <Modal
+        <CustomModal
             title="Edit Payment"
-            open={visible}
+            visible={visible}
             onCancel={handleCancel}
-            footer={null}
             width={600}
-            className="edit-payment-modal"
         >
+            <div className="payment-info-section">
+                <h4>Payment Information</h4>
+                <div className="payment-details-grid">
+                    <div className="detail-item">
+                        <label>Original Amount:</label>
+                        <span>{formatCurrency(payment.amount)}</span>
+                    </div>
+                    <div className="detail-item">
+                        <label>Principal Paid:</label>
+                        <span>{formatCurrency(payment.principalAmount)}</span>
+                    </div>
+                    <div className="detail-item">
+                        <label>Interest Paid:</label>
+                        <span>{formatCurrency(payment.interestAmount)}</span>
+                    </div>
+                    <div className="detail-item">
+                        <label>Remaining Balance:</label>
+                        <span>{formatCurrency(payment.remainingBalance)}</span>
+                    </div>
+                    <div className="detail-item">
+                        <label>Payment Type:</label>
+                        <span>{payment.isExtraPayment ? 'Extra Payment' : 'Regular Payment'}</span>
+                    </div>
+                    <div className="detail-item">
+                        <label>Created:</label>
+                        <span>{payment.createdAt.toLocaleDateString()}</span>
+                    </div>
+                </div>
+            </div>
+
             <Form
                 form={form}
                 layout="vertical"
                 onFinish={handleSubmit}
                 className="edit-payment-form"
             >
-                <div className="payment-info-section">
-                    <h4>Payment Information</h4>
-                    <div className="payment-details-grid">
-                        <div className="detail-item">
-                            <label>Original Amount:</label>
-                            <span>{formatCurrency(payment.amount)}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Principal Paid:</label>
-                            <span>{formatCurrency(payment.principalAmount)}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Interest Paid:</label>
-                            <span>{formatCurrency(payment.interestAmount)}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Remaining Balance:</label>
-                            <span>{formatCurrency(payment.remainingBalance)}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Payment Type:</label>
-                            <span>{payment.isExtraPayment ? 'Extra Payment' : 'Regular Payment'}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Created:</label>
-                            <span>{payment.createdAt.toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                </div>
-
                 <div className="edit-section">
                     <h4>Edit Payment</h4>
                     <Form.Item
@@ -174,27 +172,21 @@ export const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
 
                 <div className="modal-actions">
                     <Space>
-                        <Button onClick={handleCancel}>
-                            Cancel
-                        </Button>
-                        <Button
-                            type="primary"
-                            danger
-                            onClick={handleDelete}
-                            loading={loading}
-                        >
-                            Delete Payment
-                        </Button>
-                        <Button
-                            type="primary"
+                        <PrimaryButton
                             htmlType="submit"
                             loading={loading}
                         >
                             Update Payment
-                        </Button>
+                        </PrimaryButton>
+                        <DangerButton
+                            onClick={handleDelete}
+                            loading={loading}
+                        >
+                            Delete Payment
+                        </DangerButton>
                     </Space>
                 </div>
             </Form>
-        </Modal>
+        </CustomModal>
     );
 };
