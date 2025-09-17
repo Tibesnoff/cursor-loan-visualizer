@@ -44,8 +44,20 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
+                        <strong>Payments Started: </strong>
+                        <span>{loan.paymentsStartDate ? dayjs(loan.paymentsStartDate).format('MMMM D, YYYY') : dayjs(loan.startDate).format('MMMM D, YYYY')}</span>
+                    </div>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <div className="detail-item">
                         <strong>Monthly Payment: </strong>
                         <span>${loanDetails.monthlyPayment.toLocaleString()}</span>
+                    </div>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <div className="detail-item">
+                        <strong>Interest Accrual: </strong>
+                        <span>{loan.interestAccrualMethod === 'daily' ? 'Daily (Student Loans)' : 'Monthly (Traditional)'}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>

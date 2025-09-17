@@ -28,11 +28,13 @@ export const OneTimePaymentChart: React.FC<OneTimePaymentChartProps> = ({
         },
     ];
 
+    const totalPayment = paymentData.reduce((sum, item) => sum + item.value, 0);
+
     return (
         <Card
             title={
                 <span>
-                    One Time Payment
+                    One Time Payment - Total: ${totalPayment.toLocaleString()}
                     <Tooltip title="Shows how a single payment is split between interest and principal">
                         <QuestionCircleOutlined className="field-tooltip-icon" />
                     </Tooltip>

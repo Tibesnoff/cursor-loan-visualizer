@@ -12,6 +12,7 @@ interface PieChartProps {
         value: number;
         color: string;
     }>;
+    totalCost?: number;
     height?: number;
 }
 
@@ -19,17 +20,30 @@ export const PieChart: React.FC<PieChartProps> = ({
     title,
     tooltip,
     data,
+    totalCost,
     height = 300
 }) => {
     return (
         <Card
             title={
-                <span>
-                    {title}
-                    <Tooltip title={tooltip}>
-                        <QuestionCircleOutlined className="field-tooltip-icon" />
-                    </Tooltip>
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>
+                        {title}
+                        <Tooltip title={tooltip}>
+                            <QuestionCircleOutlined className="field-tooltip-icon" />
+                        </Tooltip>
+                    </span>
+                    {totalCost && (
+                        <span style={{
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: '#1890ff',
+                            marginLeft: '16px'
+                        }}>
+                            Total: ${totalCost.toLocaleString()}
+                        </span>
+                    )}
+                </div>
             }
             className="chart-card"
         >

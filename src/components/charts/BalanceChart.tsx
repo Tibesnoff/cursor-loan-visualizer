@@ -1,14 +1,28 @@
 import React from 'react';
 import { Card, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import './Charts.css';
 
-interface BalanceChartProps {
-    paymentScheduleData: any[];
+interface PaymentScheduleDataPoint {
+    month: number;
+    balance: number;
+    minimumPaymentBalance: number;
+    startingBalance: number;
+    totalPayments: number;
+    scheduledPayment: number;
+    paymentUsed: number;
+    totalInterest: number;
+    monthName: string;
+    year: number;
+    actualDate: string;
 }
 
-export const BalanceChart: React.FC<BalanceChartProps> = ({
+interface BalanceChartProps {
+    paymentScheduleData: PaymentScheduleDataPoint[];
+}
+
+const BalanceChart: React.FC<BalanceChartProps> = ({
     paymentScheduleData
 }) => {
     return (
@@ -16,7 +30,7 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
             title={
                 <span>
                     Loan Balance Over Time
-                    <Tooltip title="Shows your loan balance over time. Uses actual payments when made, otherwise uses scheduled payments.">
+                    <Tooltip title="Shows your actual loan balance vs. what it would be with only minimum payments. Blue line = your actual progress, red dashed line = minimum payment only. Timeline starts from when payments began.">
                         <QuestionCircleOutlined className="field-tooltip-icon" />
                     </Tooltip>
                 </span>
@@ -31,7 +45,7 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                         dataKey="month"
-                        label={{ value: 'Months Since Loan Start', position: 'insideBottom', offset: -5 }}
+                        label={{ value: 'Months Since Payments Started', position: 'insideBottom', offset: -5 }}
                     />
                     <YAxis
                         label={{ value: 'Balance ($)', angle: -90, position: 'insideLeft' }}
@@ -44,8 +58,11 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
                                 'Ending Balance'
                             ];
                         }}
-                        labelFormatter={(month) => `Month ${month}`}
-                        content={({ active, payload, label }) => {
+                        labelFormatter={(month) => {
+                            const dataPoint = paymentScheduleData.find(d => d.month === month);
+                            return dataPoint ? `${dataPoint.monthName} ${dataPoint.year}` : `Month ${month}`;
+                        }}
+                        content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
@@ -57,7 +74,7 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
                                         boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                                     }}>
                                         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>
-                                            Month {label}
+                                            {data.monthName} {data.year}
                                         </p>
                                         <p style={{ margin: '4px 0', fontSize: '14px' }}>
                                             <strong>Starting Balance:</strong> ${data.startingBalance.toLocaleString()}
@@ -79,7 +96,10 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
                                             <strong>Interest Paid:</strong> ${data.totalInterest.toLocaleString()}
                                         </p>
                                         <p style={{ margin: '4px 0', fontSize: '14px', color: '#1890ff' }}>
-                                            <strong>Ending Balance:</strong> ${data.balance.toLocaleString()}
+                                            <strong>Actual Balance:</strong> ${data.balance.toLocaleString()}
+                                        </p>
+                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#ff4d4f' }}>
+                                            <strong>Min Payment Balance:</strong> ${data.minimumPaymentBalance.toLocaleString()}
                                         </p>
                                     </div>
                                 );
@@ -93,9 +113,34 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({
                         stroke="#1890ff"
                         strokeWidth={3}
                         dot={{ fill: '#1890ff', strokeWidth: 2, r: 4 }}
+                        name="Actual Balance"
+                    />
+                    <Line
+                        type="monotone"
+                        dataKey="minimumPaymentBalance"
+                        stroke="#ff4d4f"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={{ fill: '#ff4d4f', strokeWidth: 2, r: 3 }}
+                        name="Minimum Payment Balance"
+                    />
+                    <Legend
+                        verticalAlign="bottom"
+                        height={36}
+                        formatter={(value) => {
+                            if (value === 'Actual Balance') {
+                                return <span style={{ color: '#1890ff' }}>● {value}</span>;
+                            } else if (value === 'Minimum Payment Balance') {
+                                return <span style={{ color: '#ff4d4f' }}>● {value}</span>;
+                            }
+                            return value;
+                        }}
                     />
                 </LineChart>
             </ResponsiveContainer>
         </Card>
     );
 };
+
+export { BalanceChart };
+export default BalanceChart;

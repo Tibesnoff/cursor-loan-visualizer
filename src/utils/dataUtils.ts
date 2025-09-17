@@ -1,4 +1,4 @@
-import { User, Loan, Payment, LoanType } from '../types';
+import { User, Loan, Payment, LoanType, InterestAccrualMethod } from '../types';
 
 // Generate unique IDs
 export const generateId = (): string => {
@@ -27,7 +27,10 @@ export const createLoan = (
   startDate: Date,
   paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly' = 'monthly',
   loanType: LoanType = 'personal',
-  minimumPayment?: number
+  minimumPayment?: number,
+  paymentDueDay?: number,
+  paymentsStartDate?: Date,
+  interestAccrualMethod: InterestAccrualMethod = 'daily'
 ): Loan => {
   const now = new Date();
   return {
@@ -39,8 +42,11 @@ export const createLoan = (
     interestRate,
     termMonths,
     startDate,
+    paymentsStartDate: paymentsStartDate || startDate, // Default to startDate if not provided
     paymentFrequency,
     minimumPayment,
+    paymentDueDay,
+    interestAccrualMethod,
     createdAt: now,
     updatedAt: now,
   };

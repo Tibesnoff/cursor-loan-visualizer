@@ -1,26 +1,96 @@
 import { useMemo } from 'react';
 import { Loan } from '../types';
-import { useActualLoanStats } from './useActualLoanStats';
 
 interface UseChartDataProps {
   loan: Loan;
-  actualLoanStats: {
-    interestPaid: number;
-  };
+  loanPayments?: any[]; // Add loan payments to factor in existing payments
 }
 
-export const useChartData = ({ loan, actualLoanStats }: UseChartDataProps) => {
-  const totalCostData = useMemo(
-    () => [
-      { name: 'Principal', value: loan.principal, color: '#1890ff' },
-      {
-        name: 'Total Interest',
-        value: Math.max(actualLoanStats.interestPaid, 1),
-        color: '#ff4d4f',
-      },
-    ],
-    [loan.principal, actualLoanStats.interestPaid]
-  );
+export const useChartData = ({
+  loan,
+  loanPayments = [],
+}: UseChartDataProps) => {
+  const totalCostData = useMemo(() => {
+    // Calculate projected total interest over the entire loan term
+    let projectedTotalInterest = 0;
+
+    if (loan.termMonths > 0) {
+      // For loans with fixed terms, calculate total interest using standard amortization
+      const monthlyRate = loan.interestRate / 100 / 12;
+      const monthlyPayment =
+        (loan.principal *
+          monthlyRate *
+          Math.pow(1 + monthlyRate, loan.termMonths)) /
+        (Math.pow(1 + monthlyRate, loan.termMonths) - 1);
+
+      if (monthlyPayment > 0) {
+        const totalPayments = monthlyPayment * loan.termMonths;
+        projectedTotalInterest = totalPayments - loan.principal;
+      }
+    } else if (loan.minimumPayment) {
+      // For minimum payment loans, calculate actual payoff time and total interest
+      const monthlyRate = loan.interestRate / 100 / 12;
+
+      // Start with current balance after existing payments
+      let balance = loan.principal;
+      let totalInterest = 0;
+      let months = 0;
+      const maxMonths = 600; // Cap at 50 years to prevent infinite loops
+
+      // Apply existing payments first
+      const sortedPayments = [...loanPayments]
+        .filter(payment => payment.loanId === loan.id)
+        .sort(
+          (a, b) =>
+            new Date(a.paymentDate).getTime() -
+            new Date(b.paymentDate).getTime()
+        );
+
+      // Process existing payments chronologically
+      sortedPayments.forEach(payment => {
+        const interestPayment = balance * monthlyRate;
+        const principalPayment = Math.max(0, payment.amount - interestPayment);
+
+        totalInterest += Math.min(interestPayment, payment.amount);
+        balance = Math.max(0, balance - principalPayment);
+      });
+
+      // Now simulate future minimum payments until balance reaches 0
+      while (balance > 0.01 && months < maxMonths) {
+        const interestPayment = balance * monthlyRate;
+        const principalPayment = Math.min(
+          loan.minimumPayment - interestPayment,
+          balance
+        );
+
+        totalInterest += interestPayment;
+        balance -= principalPayment;
+        months++;
+      }
+
+      projectedTotalInterest = totalInterest;
+    }
+
+    const totalCost = loan.principal + projectedTotalInterest;
+
+    return {
+      data: [
+        { name: 'Principal', value: loan.principal, color: '#1890ff' },
+        {
+          name: 'Total Interest',
+          value: Math.max(projectedTotalInterest, 1),
+          color: '#ff4d4f',
+        },
+      ],
+      totalCost,
+    };
+  }, [
+    loan.principal,
+    loan.interestRate,
+    loan.termMonths,
+    loan.minimumPayment,
+    loanPayments,
+  ]);
 
   const oneTimePaymentData = useMemo(() => {
     const monthlyPayment =
@@ -45,7 +115,7 @@ export const useChartData = ({ loan, actualLoanStats }: UseChartDataProps) => {
   }, [loan]);
 
   return {
-    totalCostData,
-    oneTimePaymentData,
+    totalCostData: totalCostData.data,
+    totalCost: totalCostData.totalCost,
   };
 };

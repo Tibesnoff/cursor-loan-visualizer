@@ -17,6 +17,8 @@ export type LoanType =
   | 'business'
   | 'home_equity';
 
+export type InterestAccrualMethod = 'daily' | 'monthly';
+
 export interface Loan {
   id: string;
   userId: string;
@@ -26,8 +28,11 @@ export interface Loan {
   interestRate: number; // Annual percentage rate
   termMonths: number; // 0 for loans without fixed terms
   startDate: Date;
+  paymentsStartDate?: Date; // When payments actually begin (can be different from startDate)
   paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly';
   minimumPayment?: number; // Required for credit cards and student loans
+  paymentDueDay?: number; // Day of month when payment is due (1-31)
+  interestAccrualMethod: InterestAccrualMethod; // How interest is calculated
   createdAt: Date;
   updatedAt: Date;
 }

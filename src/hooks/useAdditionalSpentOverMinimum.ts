@@ -14,7 +14,9 @@ export const useAdditionalSpentOverMinimum = ({
 }: UseAdditionalSpentOverMinimumProps) => {
   const additionalSpentOverMinimum = useMemo(() => {
     const minimumAmount = loan.minimumPayment || monthlyPayment;
-    const loanStartDate = new Date(loan.startDate);
+    const paymentsStartDate = loan.paymentsStartDate
+      ? new Date(loan.paymentsStartDate)
+      : new Date(loan.startDate);
     const currentDate = new Date();
 
     // Filter out future payments - only count payments made up to today
@@ -34,29 +36,17 @@ export const useAdditionalSpentOverMinimum = ({
       0
     );
 
-    // Calculate months since loan started
+    // Calculate months since payments started
     // For same-day payments, we expect at least 1 payment
     const monthsSinceStart = Math.max(
       1,
-      (currentDate.getFullYear() - loanStartDate.getFullYear()) * 12 +
-        (currentDate.getMonth() - loanStartDate.getMonth()) +
+      (currentDate.getFullYear() - paymentsStartDate.getFullYear()) * 12 +
+        (currentDate.getMonth() - paymentsStartDate.getMonth()) +
         1
     );
 
     // Calculate what should have been paid at minimum up to today
     const expectedMinimumTotal = minimumAmount * monthsSinceStart;
-
-    // Debug logging
-    console.log('Additional Spent Over Minimum Debug:', {
-      totalPaidUpToToday,
-      minimumAmount,
-      monthsSinceStart,
-      expectedMinimumTotal,
-      loanStartDate: loanStartDate.toDateString(),
-      currentDate: currentDate.toDateString(),
-      futurePayments: loanPayments.length - paymentsUpToToday.length,
-      result: Math.max(0, totalPaidUpToToday - expectedMinimumTotal),
-    });
 
     // Additional spent over minimum (only for payments made up to today)
     return Math.max(0, totalPaidUpToToday - expectedMinimumTotal);

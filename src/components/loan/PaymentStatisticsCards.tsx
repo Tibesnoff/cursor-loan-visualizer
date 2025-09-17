@@ -155,8 +155,8 @@ export const PaymentStatisticsCards: React.FC<PaymentStatisticsCardsProps> = ({
                                     <span className="breakdown-value principal">${lastPaymentBreakdown.principalPaid.toLocaleString()}</span>
                                 </div>
                                 <div className="breakdown-row total">
-                                    <span className="breakdown-label">Ending Balance:</span>
-                                    <span className="breakdown-value">${lastPaymentBreakdown.balanceAfter.toLocaleString()}</span>
+                                    <span className="breakdown-label">Current Balance:</span>
+                                    <span className="breakdown-value">${lastPaymentBreakdown.currentBalance.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>

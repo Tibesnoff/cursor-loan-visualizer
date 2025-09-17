@@ -4,6 +4,9 @@ import { Loan, Payment } from '../types';
 export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
   const monthlyRate = loan.interestRate / 100 / 12;
   const loanStartDate = new Date(loan.startDate);
+  const paymentsStartDate = loan.paymentsStartDate
+    ? new Date(loan.paymentsStartDate)
+    : loanStartDate;
 
   // Calculate monthly payment amount
   const monthlyPaymentAmount = useMemo(() => {
@@ -23,13 +26,13 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
   // Get payments for a specific month
   const getPaymentsForMonth = (monthIndex: number) => {
     const monthStart = new Date(
-      loanStartDate.getFullYear(),
-      loanStartDate.getMonth() + monthIndex,
+      paymentsStartDate.getFullYear(),
+      paymentsStartDate.getMonth() + monthIndex,
       1
     );
     const monthEnd = new Date(
-      loanStartDate.getFullYear(),
-      loanStartDate.getMonth() + monthIndex + 1,
+      paymentsStartDate.getFullYear(),
+      paymentsStartDate.getMonth() + monthIndex + 1,
       0
     );
 
@@ -43,16 +46,16 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     });
   };
 
-  // Get payments for the loan start date
+  // Get payments for the payments start date
   const getStartDatePayments = () => {
     return loanPayments.filter(payment => {
       const paymentDate = new Date(payment.paymentDate);
-      const loanStart = new Date(loanStartDate);
+      const paymentsStart = new Date(paymentsStartDate);
       return (
         payment.loanId === loan.id &&
-        paymentDate.getFullYear() === loanStart.getFullYear() &&
-        paymentDate.getMonth() === loanStart.getMonth() &&
-        paymentDate.getDate() === loanStart.getDate()
+        paymentDate.getFullYear() === paymentsStart.getFullYear() &&
+        paymentDate.getMonth() === paymentsStart.getMonth() &&
+        paymentDate.getDate() === paymentsStart.getDate()
       );
     });
   };
@@ -60,6 +63,7 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
   return {
     monthlyRate,
     loanStartDate,
+    paymentsStartDate,
     monthlyPaymentAmount,
     getPaymentsForMonth,
     getStartDatePayments,

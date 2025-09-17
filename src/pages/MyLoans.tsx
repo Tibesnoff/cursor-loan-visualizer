@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tooltip } from 'antd';
-import { QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tooltip, Popconfirm, message } from 'antd';
+import { QuestionCircleOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { deleteLoan } from '../store/slices/loansSlice';
 import { AddLoanModal, AddPaymentModal, UserSetup } from '../components/forms';
 import { LoanTypeBadge } from '../components/ui';
 import { Loan } from '../types';
@@ -11,6 +12,7 @@ import './MyLoans.css';
 export const MyLoans: React.FC = () => {
     const { loans } = useAppSelector((state) => state.loans);
     const { currentUser } = useAppSelector((state) => state.user);
+    const dispatch = useAppDispatch();
     const [modalVisible, setModalVisible] = useState(false);
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
     const [userSetupVisible, setUserSetupVisible] = useState(false);
@@ -40,6 +42,11 @@ export const MyLoans: React.FC = () => {
             return;
         }
         setPaymentModalVisible(true);
+    };
+
+    const handleDeleteLoan = (loanId: string) => {
+        dispatch(deleteLoan(loanId));
+        message.success('Loan deleted successfully');
     };
 
     const handlePaymentModalCancel = () => {
@@ -172,9 +179,18 @@ export const MyLoans: React.FC = () => {
                     >
                         View
                     </Button>
-                    <Button type="link" size="small" danger>
-                        Delete
-                    </Button>
+                    <Popconfirm
+                        title="Delete Loan"
+                        description="Are you sure you want to delete this loan? This action cannot be undone."
+                        onConfirm={() => handleDeleteLoan(record.id)}
+                        okText="Yes, Delete"
+                        cancelText="Cancel"
+                        okButtonProps={{ danger: true }}
+                    >
+                        <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+                            Delete
+                        </Button>
+                    </Popconfirm>
                 </Space>
             ),
         },

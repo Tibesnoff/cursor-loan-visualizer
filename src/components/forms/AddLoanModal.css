@@ -79,3 +79,60 @@
   border-color: #ffccc7;
   color: #ff4d4f;
 }
+
+/* Form Layout */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-item-half {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.add-loan-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.add-loan-modal .ant-form-item-label {
+  padding-bottom: 4px;
+}
+
+.add-loan-modal .ant-form-item-control-input {
+  min-height: auto;
+}
+
+.add-loan-modal .ant-form-item-control-input-content {
+  line-height: 1.2;
+}
+
+/* Input Styling */
+.due-day-input {
+  width: 100%;
+}
+
+.term-input {
+  width: 100%;
+}
+
+.minimum-payment-input {
+  width: 100%;
+}
+
+.rate-input {
+  width: 100%;
+}
+
+.currency-input {
+  width: 100%;
+}
+
+.date-picker {
+  width: 100%;
+}
+
+.loan-type-select {
+  width: 100%;
+}
