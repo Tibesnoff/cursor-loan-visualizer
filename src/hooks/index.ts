@@ -4,3 +4,10 @@ export { useChartData } from './useChartData';
 export { useMonthlyPaymentAdjustment } from './useMonthlyPaymentAdjustment';
 export { useFormManagement } from './useFormManagement';
 export { useCleanup } from './useCleanup';
+export {
+  useLoanStatistics,
+  usePaymentStatistics,
+  useUserStatistics,
+  useAllLoansStatistics,
+  useUserLoansStatistics,
+} from './useStatistics';

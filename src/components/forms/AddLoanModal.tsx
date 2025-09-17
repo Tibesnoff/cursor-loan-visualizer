@@ -3,7 +3,7 @@ import { Form, message } from 'antd';
 import { CustomModal } from '../ui';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addLoan } from '../../store/slices/loansSlice';
-import { createLoan } from '../../utils/dataUtils';
+import { loanActionCreators, loanBusinessLogic } from '../../store/actions';
 import { LoanType, InterestAccrualMethod } from '../../types';
 import { useFormManagement } from '../../hooks';
 import LoanFormFields from './shared/LoanFormFields';
@@ -64,25 +64,32 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
         const selectedType = loanTypes.find((type: any) => type.value === values.loanType);
         const minimumPayment = selectedType?.needsMinimumPayment ? values.minimumPayment : undefined;
 
-        const newLoan = createLoan(
-            currentUser.id,
-            values.name,
-            values.principal,
-            values.interestRate,
+        const formData = {
+            name: values.name,
+            loanType: values.loanType as LoanType,
+            principal: values.principal,
+            interestRate: values.interestRate,
             termMonths,
-            values.disbursementDate.toDate(),
-            paymentFrequency,
-            values.loanType as LoanType,
+            disbursementDate: values.disbursementDate.toDate(),
+            interestStartDate: values.interestStartDate.toDate(),
+            firstPaymentDueDate: values.firstPaymentDueDate.toDate(),
+            paymentFrequency: paymentFrequency as any,
             minimumPayment,
-            values.paymentDueDay,
-            values.firstPaymentDueDate.toDate(),
-            values.interestAccrualMethod as InterestAccrualMethod,
-            values.isSubsidized,
-            values.interestStartDate.toDate(),
-            values.gracePeriodMonths
-        );
+            paymentDueDay: values.paymentDueDay,
+            interestAccrualMethod: values.interestAccrualMethod as InterestAccrualMethod,
+            isSubsidized: values.isSubsidized,
+            gracePeriodMonths: values.gracePeriodMonths,
+        };
 
-        dispatch(addLoan(newLoan));
+        // Use business logic to create loan
+        const result = loanBusinessLogic.createLoan(currentUser.id, formData);
+
+        if (result.error) {
+            message.error(result.error);
+            return;
+        }
+
+        dispatch(addLoan(result.loan));
     };
 
     return (

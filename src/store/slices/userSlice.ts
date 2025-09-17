@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User } from '../../types';
-import { handleReduxError } from '../../utils/reduxSliceFactory';
 
 interface UserState {
   currentUser: User | null;
@@ -32,20 +31,14 @@ const userSlice = createSlice({
       state.error = null;
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
-      try {
-        if (state.currentUser) {
-          state.currentUser = {
-            ...state.currentUser,
-            ...action.payload,
-            updatedAt: new Date(),
-          };
-          state.error = null;
-        } else {
-          state.error = 'No user to update';
-        }
-      } catch (error) {
-        handleReduxError(state, error, 'Failed to update user');
+      if (state.currentUser) {
+        state.currentUser = {
+          ...state.currentUser,
+          ...action.payload,
+          updatedAt: new Date(),
+        };
       }
+      state.error = null;
     },
     clearUser: state => {
       state.currentUser = null;
