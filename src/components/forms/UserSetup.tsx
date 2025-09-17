@@ -24,7 +24,8 @@ export const UserSetup: React.FC<UserSetupProps> = ({ visible, onComplete }) => 
             form.resetFields();
             onComplete();
         } catch (error) {
-            message.error('Failed to create user profile');
+            console.error('Error creating user profile:', error);
+            message.error('Failed to create user profile. Please check your input and try again.');
         } finally {
             setLoading(false);
         }

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Divider, Tooltip, Checkbox } from 'antd';
+import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, Tooltip, Checkbox } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addLoan } from '../../store/slices/loansSlice';
 import { createLoan } from '../../utils/dataUtils';
 import { getLoanTypesForForm } from '../../utils/loanUtils';
+import { LoanType, InterestAccrualMethod } from '../../types';
 import dayjs from 'dayjs';
 import './AddLoanModal.css';
 
@@ -26,7 +27,20 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
 
     const selectedType = loanTypes.find(type => type.value === selectedLoanType);
 
-    const handleSubmit = async (values: any) => {
+    const handleSubmit = async (values: {
+        name: string;
+        loanType: string;
+        principal: number;
+        interestRate: number;
+        termMonths: number;
+        startDate: { toDate: () => Date };
+        paymentsStartDate?: { toDate: () => Date };
+        paymentFrequency: string;
+        minimumPayment?: number;
+        paymentDueDay?: number;
+        interestAccrualMethod: string;
+        isSubsidized?: boolean;
+    }) => {
         if (!currentUser) {
             message.error('Please create a user profile first');
             return;
@@ -51,11 +65,11 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                 termMonths,
                 values.startDate.toDate(),
                 paymentFrequency,
-                values.loanType,
+                values.loanType as LoanType,
                 minimumPayment,
                 values.paymentDueDay,
                 values.paymentsStartDate?.toDate(),
-                values.interestAccrualMethod,
+                values.interestAccrualMethod as InterestAccrualMethod,
                 values.isSubsidized
             );
 
@@ -65,7 +79,8 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
             setSelectedLoanType('');
             onCancel();
         } catch (error) {
-            message.error('Failed to add loan');
+            console.error('Error adding loan:', error);
+            message.error('Failed to add loan. Please check your input and try again.');
         } finally {
             setLoading(false);
         }
@@ -334,7 +349,7 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                     </Form.Item>
                 </div>
 
-                {selectedType?.loanType === 'student' && (
+                {selectedType?.value === 'student' && (
                     <div className="form-row">
                         <Form.Item
                             name="isSubsidized"

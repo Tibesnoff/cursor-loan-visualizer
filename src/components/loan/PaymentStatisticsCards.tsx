@@ -13,16 +13,16 @@ export const PaymentStatisticsCards: React.FC<PaymentStatisticsCardsProps> = ({
     loan,
     loanPayments
 }) => {
-    if (loanPayments.length === 0) {
-        return null;
-    }
-
-    // Use consolidated hook for all calculations
+    // Use consolidated hook for all calculations - must be called before any returns
     const {
         actualLoanStats,
         additionalSpentOverMinimum,
         lastPaymentBreakdown
     } = useLoanCalculations(loan, loanPayments);
+
+    if (loanPayments.length === 0) {
+        return null;
+    }
 
     return (
         <Row gutter={[16, 16]} className="overview-cards">

@@ -41,7 +41,12 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
 
     const selectedLoan = loans.find(loan => loan.id === selectedLoanId);
 
-    const handleSubmit = async (values: any) => {
+    const handleSubmit = async (values: {
+        loanId: string;
+        amount: number;
+        paymentDate: { toDate: () => Date };
+        notes?: string;
+    }) => {
         if (!selectedLoan) {
             message.error('Please select a loan');
             return;
@@ -83,7 +88,8 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
             setSelectedLoanId('');
             onCancel();
         } catch (error) {
-            message.error('Failed to add payment');
+            console.error('Error adding payment:', error);
+            message.error('Failed to add payment. Please check your input and try again.');
         } finally {
             setLoading(false);
         }

@@ -28,25 +28,78 @@ const loansSlice = createSlice({
       state.error = null;
     },
     addLoan: (state, action: PayloadAction<Loan>) => {
-      state.loans.push(action.payload);
-      state.error = null;
+      try {
+        // Validate loan data
+        if (!action.payload || !action.payload.id) {
+          state.error = 'Invalid loan data provided';
+          return;
+        }
+
+        // Check for duplicate loan ID
+        const existingLoan = state.loans.find(
+          loan => loan.id === action.payload.id
+        );
+        if (existingLoan) {
+          state.error = 'Loan with this ID already exists';
+          return;
+        }
+
+        state.loans.push(action.payload);
+        state.error = null;
+      } catch (error) {
+        state.error = 'Failed to add loan';
+        console.error('Error adding loan:', error);
+      }
     },
     updateLoan: (
       state,
       action: PayloadAction<{ id: string; updates: Partial<Loan> }>
     ) => {
-      const { id, updates } = action.payload;
-      const index = state.loans.findIndex(loan => loan.id === id);
-      if (index !== -1) {
+      try {
+        const { id, updates } = action.payload;
+
+        if (!id) {
+          state.error = 'Loan ID is required for update';
+          return;
+        }
+
+        const index = state.loans.findIndex(loan => loan.id === id);
+        if (index === -1) {
+          state.error = 'Loan not found';
+          return;
+        }
+
         state.loans[index] = {
           ...state.loans[index],
           ...updates,
           updatedAt: new Date(),
         };
+        state.error = null;
+      } catch (error) {
+        state.error = 'Failed to update loan';
+        console.error('Error updating loan:', error);
       }
     },
     deleteLoan: (state, action: PayloadAction<string>) => {
-      state.loans = state.loans.filter(loan => loan.id !== action.payload);
+      try {
+        if (!action.payload) {
+          state.error = 'Loan ID is required for deletion';
+          return;
+        }
+
+        const initialLength = state.loans.length;
+        state.loans = state.loans.filter(loan => loan.id !== action.payload);
+
+        if (state.loans.length === initialLength) {
+          state.error = 'Loan not found for deletion';
+          return;
+        }
+
+        state.error = null;
+      } catch (error) {
+        state.error = 'Failed to delete loan';
+        console.error('Error deleting loan:', error);
+      }
     },
     clearLoans: state => {
       state.loans = [];

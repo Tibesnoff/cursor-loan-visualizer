@@ -8,7 +8,7 @@ import {
   loadLoansFromStorage,
   loadPaymentsFromStorage,
 } from './middleware/persistenceMiddleware';
-import { STORAGE_KEYS } from '../constants';
+import { UserState, LoansState, PaymentsState } from '../types';
 
 export const store = configureStore({
   reducer: {
@@ -28,17 +28,17 @@ export const store = configureStore({
       currentUser: loadUserFromStorage(),
       isLoading: false,
       error: null,
-    },
+    } as UserState,
     loans: {
       loans: loadLoansFromStorage(),
       isLoading: false,
       error: null,
-    },
+    } as LoansState,
     payments: {
       payments: loadPaymentsFromStorage(),
       isLoading: false,
       error: null,
-    },
+    } as PaymentsState,
   },
 });
 

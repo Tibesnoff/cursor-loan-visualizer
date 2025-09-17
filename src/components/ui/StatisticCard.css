@@ -1,67 +1,128 @@
-/* Statistic Card Styles */
+/* Statistic Card Styles - Using CSS Variables */
+
 .statistic-card {
   text-align: center;
-  border-radius: 8px;
-  padding: 20px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background: var(--color-background-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
   height: 100%;
+  border: 1px solid var(--color-border-secondary);
 }
 
 .statistic-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .statistic-card .ant-statistic-title {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 8px;
-  font-weight: 500;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
 }
 
 .statistic-card .ant-statistic-content {
-  color: #262626;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.2;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
 }
 
 .statistic-card .ant-statistic-content-value {
-  color: #262626;
+  color: var(--color-text-primary);
 }
 
 .statistic-card .ant-statistic-content-suffix {
-  color: #666;
-  font-size: 16px;
-  margin-left: 4px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin-left: var(--space-1);
+  font-weight: var(--font-weight-normal);
 }
 
 /* Statistic Card Variants */
 .statistic-card.primary .ant-statistic-content {
-  color: #1890ff;
+  color: var(--color-primary);
 }
 
 .statistic-card.success .ant-statistic-content {
-  color: #52c41a;
+  color: var(--color-success);
 }
 
 .statistic-card.warning .ant-statistic-content {
-  color: #fa8c16;
+  color: var(--color-warning);
 }
 
 .statistic-card.danger .ant-statistic-content {
-  color: #ff4d4f;
+  color: var(--color-error);
+}
+
+/* Statistic Card Sizes */
+.statistic-card.small {
+  padding: var(--space-4);
+}
+
+.statistic-card.small .ant-statistic-content {
+  font-size: var(--font-size-xl);
+}
+
+.statistic-card.large {
+  padding: var(--space-6);
+}
+
+.statistic-card.large .ant-statistic-content {
+  font-size: var(--font-size-3xl);
+}
+
+/* Loading State */
+.statistic-card.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.statistic-card.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--color-border-primary);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .statistic-card {
-    padding: 16px;
+    padding: var(--space-4);
   }
   
   .statistic-card .ant-statistic-content {
-    font-size: 20px;
+    font-size: var(--font-size-xl);
+  }
+  
+  .statistic-card .ant-statistic-title {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .statistic-card {
+    padding: var(--space-3);
+  }
+  
+  .statistic-card .ant-statistic-content {
+    font-size: var(--font-size-lg);
   }
 }

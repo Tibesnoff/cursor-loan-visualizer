@@ -6,7 +6,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { deleteLoan } from '../store/slices/loansSlice';
 import { AddLoanModal, AddPaymentModal, UserSetup } from '../components/forms';
 import { LoanTypeBadge } from '../components/ui';
-import { Loan } from '../types';
+import { Loan, LoanType } from '../types';
 import './MyLoans.css';
 
 export const MyLoans: React.FC = () => {
@@ -88,7 +88,7 @@ export const MyLoans: React.FC = () => {
             dataIndex: 'loanType',
             key: 'loanType',
             render: (loanType: string) => (
-                <LoanTypeBadge loanType={loanType as any} />
+                <LoanTypeBadge loanType={loanType as LoanType} />
             ),
         },
         {
@@ -170,7 +170,7 @@ export const MyLoans: React.FC = () => {
                 </span>
             ),
             key: 'actions',
-            render: (_: any, record: Loan) => (
+            render: (_: unknown, record: Loan) => (
                 <Space>
                     <Button
                         type="link"

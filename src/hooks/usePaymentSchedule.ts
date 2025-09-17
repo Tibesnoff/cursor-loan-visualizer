@@ -1,47 +1,74 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
 import { calculateInterestBetweenDates } from '../utils/interestCalculations';
 import { calculateEffectiveStartingBalance } from '../utils/loanCalculationUtils';
+import {
+  createStableArray,
+  createCleanupFunction,
+  limitArraySize,
+} from '../utils/memoryUtils';
 
 export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
-  const {
-    monthlyRate,
-    loanStartDate,
-    paymentsStartDate,
-    monthlyPaymentAmount,
-  } = useLoanCalculations(loan, loanPayments);
+  const { monthlyRate, paymentsStartDate, monthlyPaymentAmount } =
+    useLoanCalculations(loan, loanPayments);
+
+  // Create cleanup function for this hook
+  const cleanup = useRef(createCleanupFunction());
+
+  // Cleanup on unmount
+  useEffect(() => {
+    const cleanupFn = cleanup.current;
+    return () => {
+      cleanupFn.cleanup();
+    };
+  }, []);
+
+  // Memoize sorted payments to prevent unnecessary sorting on every render
+  const sortedPayments = useMemo(() => {
+    const limitedPayments = limitArraySize(loanPayments, 1000); // Limit to 1000 payments
+    return [...createStableArray(limitedPayments)].sort(
+      (a, b) =>
+        new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
+    );
+  }, [loanPayments]);
+
+  // Memoize max months calculation
+  const maxMonths = useMemo(() => {
+    return loan.termMonths > 0 ? loan.termMonths : 120; // Cap at 10 years for minimum payment loans
+  }, [loan.termMonths]);
+
+  // Memoize effective starting balance
+  const effectiveStartingBalance = useMemo(() => {
+    return calculateEffectiveStartingBalance(loan);
+  }, [loan]);
 
   const paymentScheduleData = useMemo(() => {
     const data = [];
     // Use payments start date as the baseline - balance starts at principal when payments begin
-    let actualBalance = calculateEffectiveStartingBalance(loan);
-    let minimumPaymentBalance = calculateEffectiveStartingBalance(loan); // Track balance if only minimum payments were made
-    const maxMonths = loan.termMonths > 0 ? loan.termMonths : 120; // Cap at 10 years for minimum payment loans
+    let actualBalance = effectiveStartingBalance;
+    let minimumPaymentBalance = effectiveStartingBalance; // Track balance if only minimum payments were made
 
-    // Sort payments by date for chronological processing
-    const sortedPayments = [...loanPayments].sort(
-      (a, b) =>
-        new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
-    );
+    // Add iteration limit to prevent infinite loops
+    const maxIterations = Math.min(maxMonths, 600); // Cap at 50 years maximum
 
-    for (let month = 0; month <= maxMonths; month++) {
+    for (let month = 0; month <= maxIterations; month++) {
       if (month === 0) {
         // For month 0, check if there are any payments on or before the payments start date
-        const startDatePayments = sortedPayments.filter(payment => {
+        const startDatePayments = sortedPayments.filter((payment: Payment) => {
           const paymentDate = new Date(payment.paymentDate);
           const paymentsStart = new Date(paymentsStartDate);
           return payment.loanId === loan.id && paymentDate <= paymentsStart;
         });
 
-        let initialBalance = calculateEffectiveStartingBalance(loan);
+        let initialBalance = effectiveStartingBalance;
         let totalPaymentsThisMonth = 0;
         let totalInterestThisMonth = 0;
 
         if (startDatePayments.length > 0) {
           // Process all payments made on or before the payments start date
           totalPaymentsThisMonth = startDatePayments.reduce(
-            (sum, payment) => sum + payment.amount,
+            (sum: number, payment: Payment) => sum + payment.amount,
             0
           );
 
@@ -70,7 +97,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
         const year = actualDate.getFullYear();
 
         // Calculate minimum payment balance for month 0 (always uses scheduled payment)
-        let minimumPaymentBalanceMonth0 = loan.principal;
+        let minimumPaymentBalanceMonth0 = effectiveStartingBalance;
         if (monthlyPaymentAmount > 0) {
           const interestOwed = minimumPaymentBalanceMonth0 * monthlyRate;
           const principalPayment = Math.max(
@@ -92,7 +119,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
           month,
           balance: initialBalance,
           minimumPaymentBalance: minimumPaymentBalanceMonth0,
-          startingBalance: loan.principal,
+          startingBalance: effectiveStartingBalance,
           totalPayments: totalPaymentsThisMonth,
           scheduledPayment: monthlyPaymentAmount,
           paymentUsed:
@@ -123,7 +150,7 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
         0
       );
 
-      const monthPayments = sortedPayments.filter(payment => {
+      const monthPayments = sortedPayments.filter((payment: Payment) => {
         const paymentDate = new Date(payment.paymentDate);
         return (
           payment.loanId === loan.id &&
@@ -134,7 +161,10 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
 
       const actualPayment =
         monthPayments.length > 0
-          ? monthPayments.reduce((sum, payment) => sum + payment.amount, 0)
+          ? monthPayments.reduce(
+              (sum: number, payment: Payment) => sum + payment.amount,
+              0
+            )
           : null;
 
       // Store starting balance for this month
@@ -213,13 +243,15 @@ export const usePaymentSchedule = (loan: Loan, loanPayments: Payment[]) => {
       if (actualBalance <= 0) break;
     }
 
-    return data;
+    // Limit the data array size to prevent memory bloat
+    return limitArraySize(data, 600); // Limit to 600 months (50 years)
   }, [
     loan,
-    loanPayments,
+    sortedPayments,
+    maxMonths,
+    effectiveStartingBalance,
     monthlyRate,
     monthlyPaymentAmount,
-    loanStartDate,
     paymentsStartDate,
   ]);
 

@@ -1,1 +1,6 @@
-/* Reset and base styles - minimal to avoid conflicts with App.css */
+/* Import CSS Architecture */
+@import './styles/variables.css';
+@import './styles/reset.css';
+@import './styles/utilities.css';
+@import './styles/components.css';
+@import './styles/layout.css';

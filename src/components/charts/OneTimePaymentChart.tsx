@@ -58,11 +58,11 @@ export const OneTimePaymentChart: React.FC<OneTimePaymentChartProps> = ({
                     <Legend
                         verticalAlign="bottom"
                         height={36}
-                        formatter={(value, entry: any) => {
+                        formatter={(value: string, entry: { payload?: { value?: number }; color?: string }) => {
                             const total = paymentData.reduce((sum, item) => sum + item.value, 0);
-                            const percentage = ((entry.payload.value / total) * 100).toFixed(0);
+                            const percentage = ((entry.payload?.value || 0) / total) * 100;
                             return (
-                                <span style={{ color: entry.color }}>
+                                <span style={{ color: entry.color || '#000' }}>
                                     {value} ({percentage}%)
                                 </span>
                             );

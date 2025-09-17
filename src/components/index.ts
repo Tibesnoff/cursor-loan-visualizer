@@ -12,3 +12,7 @@ export * from './charts';
 
 // Loan Components
 export * from './loan';
+
+// Error handling components
+export { ErrorBoundary, withErrorBoundary } from './ErrorBoundary';
+export { GlobalErrorHandler } from './GlobalErrorHandler';

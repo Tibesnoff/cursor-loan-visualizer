@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { Loan, Payment } from '../types';
 import { calculateInterestBetweenDates } from '../utils/interestCalculations';
 import {
@@ -6,13 +6,74 @@ import {
   applyPaymentToBalance,
   calculateMonthlyPayment,
 } from '../utils/loanCalculationUtils';
+import {
+  createError,
+  ErrorType,
+  safeCalculate,
+  logError,
+} from '../utils/errorHandling';
+import {
+  createStableArray,
+  createCleanupFunction,
+  limitArraySize,
+} from '../utils/memoryUtils';
 
 export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
-  const monthlyRate = loan.interestRate / 100 / 12;
-  const loanStartDate = new Date(loan.startDate);
-  const paymentsStartDate = loan.paymentsStartDate
-    ? new Date(loan.paymentsStartDate)
-    : loanStartDate;
+  // Create cleanup function for this hook
+  const cleanup = useRef(createCleanupFunction());
+
+  // Cleanup on unmount
+  useEffect(() => {
+    const cleanupFn = cleanup.current;
+    return () => {
+      cleanupFn.cleanup();
+    };
+  }, []);
+
+  // Input validation
+  if (!loan) {
+    const error = createError(
+      ErrorType.VALIDATION,
+      'Loan object is required for calculations',
+      'Loan is null or undefined',
+      'MISSING_LOAN'
+    );
+    logError(error, 'useLoanCalculations');
+    throw error;
+  }
+
+  if (!Array.isArray(loanPayments)) {
+    const error = createError(
+      ErrorType.VALIDATION,
+      'Loan payments must be an array',
+      `Payments: ${typeof loanPayments}`,
+      'INVALID_PAYMENTS_ARRAY'
+    );
+    logError(error, 'useLoanCalculations');
+    throw error;
+  }
+
+  const monthlyRate = safeCalculate(
+    () => loan.interestRate / 100 / 12,
+    0,
+    'Failed to calculate monthly rate',
+    'useLoanCalculations'
+  );
+
+  const loanStartDate = safeCalculate(
+    () => new Date(loan.startDate),
+    new Date(),
+    'Failed to parse loan start date',
+    'useLoanCalculations'
+  );
+
+  const paymentsStartDate = safeCalculate(
+    () =>
+      loan.paymentsStartDate ? new Date(loan.paymentsStartDate) : loanStartDate,
+    loanStartDate,
+    'Failed to parse payments start date',
+    'useLoanCalculations'
+  );
 
   // Calculate monthly payment amount
   const monthlyPaymentAmount = useMemo(() => {
@@ -56,12 +117,24 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     });
   };
 
-  // Calculate actual loan statistics
-  const actualLoanStats = useMemo(() => {
-    const relevantPayments = loanPayments.filter(
+  // Memoize filtered payments to prevent unnecessary recalculations
+  const relevantPayments = useMemo(() => {
+    const limitedPayments = limitArraySize(loanPayments, 1000); // Limit to 1000 payments
+    return createStableArray(limitedPayments).filter(
       payment => payment.loanId === loan.id
     );
+  }, [loanPayments, loan.id]);
 
+  // Memoize sorted payments to prevent unnecessary sorting
+  const sortedPayments = useMemo(() => {
+    return [...createStableArray(relevantPayments)].sort(
+      (a, b) =>
+        new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
+    );
+  }, [relevantPayments]);
+
+  // Calculate actual loan statistics with optimized dependencies
+  const actualLoanStats = useMemo(() => {
     const totalPaid = relevantPayments.reduce(
       (sum, payment) => sum + payment.amount,
       0
@@ -71,14 +144,10 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     let interestPaid = 0;
     let principalPaid = 0;
 
-    const sortedPayments = [...relevantPayments].sort(
-      (a, b) =>
-        new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
-    );
-
     let lastPaymentDate = paymentsStartDate;
 
-    sortedPayments.forEach(payment => {
+    // Process payments in chronological order
+    for (const payment of sortedPayments) {
       const paymentResult = applyPaymentToBalance(
         balance,
         payment,
@@ -91,7 +160,7 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
       interestPaid += paymentResult.interestPaid;
       principalPaid += paymentResult.principalPaid;
       lastPaymentDate = new Date(payment.paymentDate);
-    });
+    }
 
     // Calculate interest accrued since the last payment up to today
     const currentDate = new Date();
@@ -112,7 +181,7 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
       interestPaid,
       remainingBalance: balance,
     };
-  }, [loan, loanPayments, paymentsStartDate]);
+  }, [loan, sortedPayments, paymentsStartDate, relevantPayments]);
 
   // Calculate additional spent over minimum
   const additionalSpentOverMinimum = useMemo(() => {
@@ -186,7 +255,7 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
 
     const interestPaid = lastPaymentResult.interestPaid;
     const principalPaid = lastPaymentResult.principalPaid;
-    let balanceAfterPayment = lastPaymentResult.newBalance;
+    const balanceAfterPayment = lastPaymentResult.newBalance;
 
     // Calculate interest accrued since the last payment up to today
     const currentDate = new Date();
