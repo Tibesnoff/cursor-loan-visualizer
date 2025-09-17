@@ -8,6 +8,7 @@ import {
   loadLoansFromStorage,
   loadPaymentsFromStorage,
 } from './middleware/persistenceMiddleware';
+import { STORAGE_KEYS } from '../constants';
 
 export const store = configureStore({
   reducer: {

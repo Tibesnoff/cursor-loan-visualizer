@@ -1,46 +1,28 @@
 import React from 'react';
 import { Row, Col, Card, Statistic, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { Payment } from '../../types';
-import { useAdditionalSpentOverMinimum, useLastPaymentBreakdown } from '../../hooks';
+import { Payment, Loan } from '../../types';
+import { useLoanCalculations } from '../../hooks';
 
 interface PaymentStatisticsCardsProps {
+    loan: Loan;
     loanPayments: Payment[];
-    loan: {
-        minimumPayment?: number;
-    };
-    loanDetails: {
-        monthlyPayment: number;
-    };
-    actualLoanStats: {
-        totalPaid: number;
-        principalPaid: number;
-        interestPaid: number;
-        remainingBalance: number;
-    };
 }
 
 export const PaymentStatisticsCards: React.FC<PaymentStatisticsCardsProps> = ({
-    loanPayments,
     loan,
-    loanDetails,
-    actualLoanStats
+    loanPayments
 }) => {
     if (loanPayments.length === 0) {
         return null;
     }
 
-    // Use hooks for calculations
-    const additionalSpentOverMinimum = useAdditionalSpentOverMinimum({
-        loan,
-        loanPayments,
-        monthlyPayment: loanDetails.monthlyPayment
-    });
-
-    const lastPaymentBreakdown = useLastPaymentBreakdown({
-        loan,
-        loanPayments
-    });
+    // Use consolidated hook for all calculations
+    const {
+        actualLoanStats,
+        additionalSpentOverMinimum,
+        lastPaymentBreakdown
+    } = useLoanCalculations(loan, loanPayments);
 
     return (
         <Row gutter={[16, 16]} className="overview-cards">

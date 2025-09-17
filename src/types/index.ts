@@ -1,3 +1,9 @@
+import {
+  LOAN_TYPES,
+  INTEREST_ACCRUAL_METHODS,
+  PAYMENT_FREQUENCIES,
+} from '../constants';
+
 // User types
 export interface User {
   id: string;
@@ -8,16 +14,13 @@ export interface User {
 }
 
 // Loan types
-export type LoanType =
-  | 'personal'
-  | 'auto'
-  | 'mortgage'
-  | 'student'
-  | 'credit_card'
-  | 'business'
-  | 'home_equity';
+export type LoanType = (typeof LOAN_TYPES)[keyof typeof LOAN_TYPES];
 
-export type InterestAccrualMethod = 'daily' | 'monthly';
+export type InterestAccrualMethod =
+  (typeof INTEREST_ACCRUAL_METHODS)[keyof typeof INTEREST_ACCRUAL_METHODS];
+
+export type PaymentFrequency =
+  (typeof PAYMENT_FREQUENCIES)[keyof typeof PAYMENT_FREQUENCIES];
 
 export interface Loan {
   id: string;
@@ -29,7 +32,7 @@ export interface Loan {
   termMonths: number; // 0 for loans without fixed terms
   startDate: Date;
   paymentsStartDate?: Date; // When payments actually begin (can be different from startDate)
-  paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly';
+  paymentFrequency: PaymentFrequency;
   minimumPayment?: number; // Required for credit cards and student loans
   paymentDueDay?: number; // Day of month when payment is due (1-31)
   interestAccrualMethod: InterestAccrualMethod; // How interest is calculated
@@ -59,10 +62,3 @@ export interface AppState {
   isLoading: boolean;
   error: string | null;
 }
-
-// Local storage keys
-export const STORAGE_KEYS = {
-  USER: 'loan_visualizer_user',
-  LOANS: 'loan_visualizer_loans',
-  PAYMENTS: 'loan_visualizer_payments',
-} as const;

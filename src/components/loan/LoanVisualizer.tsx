@@ -11,7 +11,7 @@ import {
 } from './index';
 import { BalanceChart, PieChart, OneTimePaymentChart } from '../charts';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
-import { usePaymentSchedule, useActualLoanStats, useChartData } from '../../hooks';
+import { usePaymentSchedule, useChartData, useLoanCalculations } from '../../hooks';
 import { getPaymentsForLoan } from '../../utils/dataUtils';
 import { deleteLoan } from '../../store/slices/loansSlice';
 
@@ -62,8 +62,8 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
         };
     }, [loan]);
 
-    // Use hooks for calculations
-    const actualLoanStats = useActualLoanStats(loan, loanPayments);
+    // Use consolidated hook for calculations
+    const { actualLoanStats } = useLoanCalculations(loan, loanPayments);
     const paymentScheduleData = usePaymentSchedule(loan, loanPayments);
 
     // Use chart data hook
@@ -97,10 +97,8 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                     <div className="section-group">
                         <h2 className="section-title">Payment Progress</h2>
                         <PaymentStatisticsCards
-                            loanPayments={loanPayments}
                             loan={loan}
-                            loanDetails={loanDetails}
-                            actualLoanStats={actualLoanStats}
+                            loanPayments={loanPayments}
                         />
                     </div>
                 )}

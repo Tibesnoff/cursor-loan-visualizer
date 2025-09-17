@@ -1,3 +1,6 @@
+/* Import shared styles */
+@import './styles/shared.css';
+
 /* Global Styles */
 * {
   box-sizing: border-box;

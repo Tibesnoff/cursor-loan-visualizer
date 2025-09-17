@@ -1,5 +1,5 @@
 import { Middleware } from '@reduxjs/toolkit';
-import { STORAGE_KEYS } from '../../types';
+import { STORAGE_KEYS } from '../../constants';
 
 // Helper functions for localStorage
 const saveToStorage = (key: string, data: unknown) => {

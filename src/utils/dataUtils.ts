@@ -80,24 +80,6 @@ export const createPayment = (
   };
 };
 
-// Calculate monthly payment
-export const calculateMonthlyPayment = (
-  principal: number,
-  annualRate: number,
-  termMonths: number
-): number => {
-  if (annualRate === 0) {
-    return principal / termMonths;
-  }
-
-  const monthlyRate = annualRate / 100 / 12;
-  const numerator =
-    principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths);
-  const denominator = Math.pow(1 + monthlyRate, termMonths) - 1;
-
-  return numerator / denominator;
-};
-
 // Get payments for a specific loan
 export const getPaymentsForLoan = (
   payments: Payment[],
