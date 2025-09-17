@@ -24,14 +24,16 @@ export const createLoan = (
   principal: number,
   interestRate: number,
   termMonths: number,
-  startDate: Date,
+  disbursementDate: Date,
   paymentFrequency: 'monthly' | 'bi-weekly' | 'weekly' = 'monthly',
   loanType: LoanType = 'personal',
   minimumPayment?: number,
   paymentDueDay?: number,
-  paymentsStartDate?: Date,
+  firstPaymentDueDate?: Date,
   interestAccrualMethod: InterestAccrualMethod = 'daily',
-  isSubsidized?: boolean
+  isSubsidized?: boolean,
+  interestStartDate?: Date,
+  gracePeriodMonths?: number
 ): Loan => {
   const now = new Date();
   return {
@@ -42,13 +44,15 @@ export const createLoan = (
     principal,
     interestRate,
     termMonths,
-    startDate,
-    paymentsStartDate: paymentsStartDate || startDate, // Default to startDate if not provided
+    disbursementDate,
+    interestStartDate: interestStartDate || disbursementDate, // Default to disbursementDate if not provided
+    firstPaymentDueDate: firstPaymentDueDate || disbursementDate, // Default to disbursementDate if not provided
     paymentFrequency,
     minimumPayment,
     paymentDueDay,
     interestAccrualMethod,
     isSubsidized,
+    gracePeriodMonths,
     createdAt: now,
     updatedAt: now,
   };

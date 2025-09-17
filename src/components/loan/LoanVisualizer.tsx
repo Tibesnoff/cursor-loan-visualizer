@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { Row, Col, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { Loan } from '../../types';
-import { AddPaymentModal } from '../forms';
+import { AddPaymentModal, EditLoanModal } from '../forms';
 import {
     LoanVisualizerHeader,
     LoanOverviewCards,
     PaymentStatisticsCards,
     LoanDetailsCard
 } from './index';
+import { PaymentsTable } from './PaymentsTable';
 import { MonthlyPaymentAdjuster } from './MonthlyPaymentAdjuster';
 import { BalanceChart, PieChart, OneTimePaymentChart } from '../charts';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
@@ -23,6 +24,7 @@ interface LoanVisualizerProps {
 
 export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) => {
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+    const [editModalVisible, setEditModalVisible] = useState(false);
     const [adjustedMonthlyPayment, setAdjustedMonthlyPayment] = useState<number | undefined>(undefined);
     const { payments } = useAppSelector((state) => state.payments);
     const dispatch = useAppDispatch();
@@ -41,6 +43,14 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
         dispatch(deleteLoan(loan.id));
         message.success('Loan deleted successfully');
         navigate('/loans');
+    };
+
+    const handleEditLoan = () => {
+        setEditModalVisible(true);
+    };
+
+    const handleEditModalCancel = () => {
+        setEditModalVisible(false);
     };
 
 
@@ -80,6 +90,7 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                 loanName={loan.name}
                 onBack={onBack}
                 onAddPayment={handleAddPayment}
+                onEdit={handleEditLoan}
                 onDelete={handleDeleteLoan}
             />
 
@@ -104,6 +115,19 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                         />
                     </div>
                 )}
+
+                {/* Payment History Section */}
+                <div className="section-group">
+                    <h2 className="section-title">Payment History</h2>
+                    <PaymentsTable
+                        payments={payments}
+                        loanId={loan.id}
+                        onPaymentUpdated={() => {
+                            // Force re-render by updating a dummy state
+                            // The actual data will be updated via Redux
+                        }}
+                    />
+                </div>
 
                 {/* Monthly Payment Adjustment Section */}
                 <div className="section-group">
@@ -154,6 +178,12 @@ export const LoanVisualizer: React.FC<LoanVisualizerProps> = ({ loan, onBack }) 
                 visible={paymentModalVisible}
                 onCancel={handlePaymentModalCancel}
                 preselectedLoanId={loan.id}
+            />
+
+            <EditLoanModal
+                visible={editModalVisible}
+                onCancel={handleEditModalCancel}
+                loan={loan}
             />
         </div>
     );

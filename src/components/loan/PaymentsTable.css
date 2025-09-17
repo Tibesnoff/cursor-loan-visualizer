@@ -1,0 +1,136 @@
+/* Payments Table Styles */
+
+.payments-table {
+  margin-top: 16px;
+}
+
+/* Collapsible table styles */
+.payments-table .ant-collapse {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.payments-table .ant-collapse-item {
+  border-bottom: none;
+}
+
+.payments-table .ant-collapse-header {
+  background-color: #fafafa;
+  border-radius: 8px 8px 0 0;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.payments-table .ant-collapse-content {
+  border-radius: 0 0 8px 8px;
+}
+
+.payments-table .ant-collapse-content-box {
+  padding: 16px;
+}
+
+.payments-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.payments-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.payments-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+.payments-table .ant-table-summary {
+  background-color: #f9f9f9;
+  font-weight: 600;
+}
+
+.payments-table .ant-table-summary .ant-table-cell {
+  border-top: 2px solid #d9d9d9;
+  background-color: #f9f9f9;
+}
+
+/* Action buttons */
+.payments-table .ant-btn-text {
+  padding: 4px 8px;
+  height: auto;
+  border: none;
+  box-shadow: none;
+}
+
+.payments-table .ant-btn-text:hover {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.payments-table .ant-btn-text.ant-btn-dangerous:hover {
+  background-color: #fff2f0;
+  color: #ff4d4f;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .payments-table .ant-table {
+    font-size: 12px;
+  }
+  
+  .payments-table .ant-table-thead > tr > th,
+  .payments-table .ant-table-tbody > tr > td {
+    padding: 8px 4px;
+  }
+}
+
+/* Empty state */
+.payments-table .empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  background-color: #fafafa;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.payments-table .empty-state p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+/* Summary row styling */
+.payments-table .ant-table-summary-row {
+  background-color: #f9f9f9;
+}
+
+.payments-table .ant-table-summary-row td {
+  font-weight: 600;
+  border-top: 2px solid #d9d9d9;
+}
+
+/* Tag styling */
+.payments-table .ant-tag {
+  margin: 0;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Amount styling */
+.payments-table .amount-positive {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.payments-table .amount-negative {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+.payments-table .amount-neutral {
+  color: #1890ff;
+  font-weight: 600;
+}

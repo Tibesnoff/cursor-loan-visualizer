@@ -1,6 +1,11 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { Loan, Payment } from '../types';
 import {
+  normalizeLoanDates,
+  applyPaymentToBalance,
+  calculateEffectiveStartingBalance,
+} from '../utils/consolidatedCalculations';
+import {
   createStableArray,
   createCleanupFunction,
   limitArraySize,
@@ -71,13 +76,21 @@ export const useChartData = ({
       let months = 0;
       const maxMonths = 360; // Cap at 30 years for realistic calculations
 
-      // Process existing payments chronologically
-      for (const payment of sortedPayments) {
-        const interestPayment = balance * monthlyRate;
-        const principalPayment = Math.max(0, payment.amount - interestPayment);
+      // Process existing payments chronologically using consolidated logic
+      const normalizedLoan = normalizeLoanDates(loan);
+      let lastPaymentDate = normalizedLoan.interestStartDate;
 
-        totalInterest += Math.min(interestPayment, payment.amount);
-        balance = Math.max(0, balance - principalPayment);
+      for (const payment of sortedPayments) {
+        const paymentResult = applyPaymentToBalance(
+          balance,
+          payment,
+          normalizedLoan,
+          lastPaymentDate
+        );
+
+        balance = paymentResult.newBalance;
+        totalInterest += paymentResult.interestPaid;
+        lastPaymentDate = new Date(payment.paymentDate);
       }
 
       // Check if minimum payment can actually pay off the loan

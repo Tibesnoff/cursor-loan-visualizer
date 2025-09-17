@@ -1,15 +1,43 @@
 import { Loan, Payment, InterestAccrualMethod } from '../types';
-import { calculateInterestBetweenDates } from './consolidatedCalculations';
 import { createError, ErrorType, safeCalculate } from './errorHandling';
 import {
   applyPaymentWithLoanTypeRules,
-  shouldCalculateInterestForEarlyPayment,
   InterestCalculationContext,
 } from './loanInterestRules';
 
 /**
- * Calculates the effective starting balance for a loan when payments begin
- * This uses the payments start date as the baseline, not the loan start date
+ * Consolidated loan calculation utilities
+ * All calculation logic should go through these functions to ensure consistency
+ */
+
+/**
+ * Ensures all date fields in a loan are proper Date objects
+ */
+export function normalizeLoanDates(loan: Loan): Loan {
+  return {
+    ...loan,
+    disbursementDate: new Date(loan.disbursementDate),
+    interestStartDate: new Date(loan.interestStartDate),
+    firstPaymentDueDate: new Date(loan.firstPaymentDueDate),
+    createdAt: new Date(loan.createdAt),
+    updatedAt: new Date(loan.updatedAt),
+  };
+}
+
+/**
+ * Ensures all date fields in a payment are proper Date objects
+ */
+export function normalizePaymentDates(payment: Payment): Payment {
+  return {
+    ...payment,
+    paymentDate: new Date(payment.paymentDate),
+    createdAt: new Date(payment.createdAt),
+  };
+}
+
+/**
+ * Calculates the effective starting balance for a loan
+ * This is always the principal amount - interest capitalization is handled by the servicer
  */
 export function calculateEffectiveStartingBalance(loan: Loan): number {
   return safeCalculate(
@@ -41,19 +69,17 @@ export function calculateEffectiveStartingBalance(loan: Loan): number {
         );
       }
 
-      // The starting balance is always the principal amount when payments begin
-      // Interest capitalization is handled by the loan servicer, not in our calculations
       return loan.principal;
     },
-    0, // Fallback to 0 if calculation fails
+    0,
     'Failed to calculate effective starting balance',
     'calculateEffectiveStartingBalance'
   );
 }
 
 /**
- * Applies a payment to a loan balance, following proper payment application order
- * Interest is paid first, then principal
+ * Applies a payment to a loan balance using the consolidated calculation logic
+ * This is the single source of truth for payment application
  */
 export function applyPaymentToBalance(
   balance: number,
@@ -141,13 +167,12 @@ export function applyPaymentToBalance(
         );
       }
 
-      // Allow payments before lastPaymentDate to handle pre-first-payment scenarios
-      // This is needed when someone makes a payment before the first scheduled payment
-      // We'll validate this more carefully in the calling code
+      // Normalize the loan to ensure all dates are Date objects
+      const normalizedLoan = normalizeLoanDates(loan);
 
       // Use loan type-specific rules for interest calculation
       const context: InterestCalculationContext = {
-        loan,
+        loan: normalizedLoan,
         paymentDate,
         lastPaymentDate,
         currentBalance: balance,
@@ -155,12 +180,9 @@ export function applyPaymentToBalance(
 
       const result = applyPaymentWithLoanTypeRules(context, payment.amount);
 
-      // Update balance
-      const newBalance = result.newBalance;
-
       // Validate results
       if (
-        !Number.isFinite(newBalance) ||
+        !Number.isFinite(result.newBalance) ||
         !Number.isFinite(result.interestPaid) ||
         !Number.isFinite(result.principalPayment)
       ) {
@@ -173,19 +195,19 @@ export function applyPaymentToBalance(
       }
 
       return {
-        newBalance,
+        newBalance: result.newBalance,
         interestPaid: result.interestPaid,
         principalPaid: result.principalPayment,
       };
     },
-    { newBalance: balance, interestPaid: 0, principalPaid: 0 }, // Fallback values
+    { newBalance: balance, interestPaid: 0, principalPaid: 0 },
     'Failed to apply payment to balance',
     'applyPaymentToBalance'
   );
 }
 
 /**
- * Calculates the monthly payment amount for a loan based on its type
+ * Calculates the monthly payment amount for a loan
  */
 export function calculateMonthlyPayment(loan: Loan): number {
   return safeCalculate(
@@ -247,41 +269,154 @@ export function calculateMonthlyPayment(loan: Loan): number {
 
       return 0; // No fixed payment for minimum payment only loans
     },
-    0, // Fallback to 0 if calculation fails
+    0,
     'Failed to calculate monthly payment',
     'calculateMonthlyPayment'
   );
 }
 
 /**
- * Determines if a loan should accrue interest during a specific period
- * Interest only accrues from the interest start date onwards
+ * Calculates interest between two dates using the loan's accrual method
  */
-export function shouldAccrueInterest(
-  loan: Loan,
+export function calculateInterestBetweenDates(
+  balance: number,
+  interestRate: number,
   startDate: Date,
-  endDate: Date
-): boolean {
-  const interestStartDate = new Date(loan.interestStartDate);
+  endDate: Date,
+  method: InterestAccrualMethod
+): number {
+  return safeCalculate(
+    () => {
+      // Validate dates
+      if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+        throw createError(
+          ErrorType.VALIDATION,
+          'Invalid date objects provided',
+          `Start: ${startDate}, End: ${endDate}`,
+          'INVALID_DATES'
+        );
+      }
 
-  // Interest only accrues from interest start date onwards
-  return endDate >= interestStartDate;
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw createError(
+          ErrorType.VALIDATION,
+          'Invalid date values',
+          `Start: ${startDate}, End: ${endDate}`,
+          'INVALID_DATE_VALUES'
+        );
+      }
+
+      if (endDate < startDate) {
+        throw createError(
+          ErrorType.VALIDATION,
+          'End date cannot be before start date',
+          `Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`,
+          'INVALID_DATE_RANGE'
+        );
+      }
+
+      // Handle zero values
+      if (balance === 0 || interestRate === 0) {
+        return 0;
+      }
+
+      let result: number;
+
+      if (method === 'daily') {
+        // Daily interest calculation
+        const days = Math.ceil(
+          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        const dailyRate = interestRate / 100 / 365.25;
+        result = balance * dailyRate * days;
+      } else {
+        // Monthly interest calculation
+        const startYear = startDate.getFullYear();
+        const startMonth = startDate.getMonth();
+        const endYear = endDate.getFullYear();
+        const endMonth = endDate.getMonth();
+
+        const months = (endYear - startYear) * 12 + (endMonth - startMonth);
+        const monthlyRate = interestRate / 100 / 12;
+        result = balance * monthlyRate * months;
+      }
+
+      if (!Number.isFinite(result)) {
+        throw createError(
+          ErrorType.CALCULATION,
+          'Interest calculation resulted in non-finite number',
+          `Balance: ${balance}, Rate: ${interestRate}, Method: ${method}`,
+          'CALCULATION_OVERFLOW'
+        );
+      }
+
+      return result;
+    },
+    0,
+    'Failed to calculate interest between dates',
+    'calculateInterestBetweenDates'
+  );
 }
 
 /**
- * Gets the effective interest rate for a loan period
- * Interest only applies from interest start date onwards
+ * Processes all payments for a loan and returns the final balance and totals
+ * This is the single source of truth for loan balance calculations
  */
-export function getEffectiveInterestRate(
+export function processAllPayments(
   loan: Loan,
-  startDate: Date,
-  endDate: Date
-): number {
-  const interestStartDate = new Date(loan.interestStartDate);
+  payments: Payment[]
+): {
+  finalBalance: number;
+  totalInterestPaid: number;
+  totalPrincipalPaid: number;
+  totalPaid: number;
+} {
+  return safeCalculate(
+    () => {
+      const normalizedLoan = normalizeLoanDates(loan);
+      const normalizedPayments = payments
+        .filter(p => p.loanId === loan.id)
+        .map(normalizePaymentDates)
+        .sort((a, b) => a.paymentDate.getTime() - b.paymentDate.getTime());
 
-  // Interest only applies from interest start date onwards
-  if (endDate >= interestStartDate) {
-    return loan.interestRate;
-  }
-  return 0; // No interest accrual before interest starts
+      let balance = calculateEffectiveStartingBalance(normalizedLoan);
+      let totalInterestPaid = 0;
+      let totalPrincipalPaid = 0;
+      let totalPaid = 0;
+
+      // Use interest start date as the baseline for interest calculations
+      let lastPaymentDate = normalizedLoan.interestStartDate;
+
+      // Process payments in chronological order
+      for (const payment of normalizedPayments) {
+        const paymentResult = applyPaymentToBalance(
+          balance,
+          payment,
+          normalizedLoan,
+          lastPaymentDate
+        );
+
+        balance = paymentResult.newBalance;
+        totalInterestPaid += paymentResult.interestPaid;
+        totalPrincipalPaid += paymentResult.principalPaid;
+        totalPaid += payment.amount;
+        lastPaymentDate = payment.paymentDate;
+      }
+
+      return {
+        finalBalance: balance,
+        totalInterestPaid,
+        totalPrincipalPaid,
+        totalPaid,
+      };
+    },
+    {
+      finalBalance: loan.principal,
+      totalInterestPaid: 0,
+      totalPrincipalPaid: 0,
+      totalPaid: 0,
+    },
+    'Failed to process all payments',
+    'processAllPayments'
+  );
 }

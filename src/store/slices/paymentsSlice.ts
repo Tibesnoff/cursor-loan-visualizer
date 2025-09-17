@@ -31,17 +31,13 @@ const paymentsSlice = createSlice({
       state.payments.push(action.payload);
       state.error = null;
     },
-    updatePayment: (
-      state,
-      action: PayloadAction<{ id: string; updates: Partial<Payment> }>
-    ) => {
-      const { id, updates } = action.payload;
-      const index = state.payments.findIndex(payment => payment.id === id);
+    updatePayment: (state, action: PayloadAction<Payment>) => {
+      const updatedPayment = action.payload;
+      const index = state.payments.findIndex(
+        payment => payment.id === updatedPayment.id
+      );
       if (index !== -1) {
-        state.payments[index] = {
-          ...state.payments[index],
-          ...updates,
-        };
+        state.payments[index] = updatedPayment;
       }
     },
     deletePayment: (state, action: PayloadAction<string>) => {

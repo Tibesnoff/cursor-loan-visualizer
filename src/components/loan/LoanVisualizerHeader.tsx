@@ -1,12 +1,13 @@
 import React from 'react';
 import { Popconfirm } from 'antd';
 import { PrimaryButton, DangerButton } from '../ui/Button';
-import { ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
 interface LoanVisualizerHeaderProps {
     loanName: string;
     onBack: () => void;
     onAddPayment: () => void;
+    onEdit: () => void;
     onDelete: () => void;
 }
 
@@ -14,6 +15,7 @@ export const LoanVisualizerHeader: React.FC<LoanVisualizerHeaderProps> = ({
     loanName,
     onBack,
     onAddPayment,
+    onEdit,
     onDelete
 }) => {
     return (
@@ -33,6 +35,13 @@ export const LoanVisualizerHeader: React.FC<LoanVisualizerHeaderProps> = ({
                     className="add-payment-button"
                 >
                     Add Payment
+                </PrimaryButton>
+                <PrimaryButton
+                    icon={<EditOutlined />}
+                    onClick={onEdit}
+                    className="edit-loan-button"
+                >
+                    Edit Loan
                 </PrimaryButton>
                 <Popconfirm
                     title="Delete Loan"

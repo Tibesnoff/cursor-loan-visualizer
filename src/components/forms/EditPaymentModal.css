@@ -1,0 +1,192 @@
+/* Edit Payment Modal Styles */
+
+.edit-payment-modal .ant-modal-header {
+  background-color: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.edit-payment-modal .ant-modal-title {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.edit-payment-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.edit-payment-form {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.payment-info-section {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #e8e8e8;
+}
+
+.payment-info-section h4 {
+  margin: 0 0 16px 0;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.payment-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  font-weight: 500;
+  color: #666;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item span {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.edit-section {
+  margin-bottom: 24px;
+}
+
+.edit-section h4 {
+  margin: 0 0 16px 0;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.edit-section .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.edit-section .ant-form-item-label > label {
+  font-weight: 500;
+  color: #333;
+}
+
+.edit-section .ant-input-number {
+  width: 100%;
+}
+
+.edit-section .ant-input-number-input {
+  text-align: left;
+}
+
+.edit-section .ant-picker {
+  width: 100%;
+}
+
+.edit-section .ant-input {
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8e8;
+  margin-top: 24px;
+}
+
+.modal-actions .ant-space {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.modal-actions .ant-btn {
+  min-width: 100px;
+}
+
+.modal-actions .ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.modal-actions .ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.modal-actions .ant-btn-dangerous {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: white;
+}
+
+.modal-actions .ant-btn-dangerous:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .edit-payment-modal {
+    width: 95% !important;
+    max-width: 500px;
+  }
+  
+  .payment-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-actions .ant-space {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .modal-actions .ant-btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Form validation styles */
+.edit-payment-form .ant-form-item-has-error .ant-input,
+.edit-payment-form .ant-form-item-has-error .ant-input-number,
+.edit-payment-form .ant-form-item-has-error .ant-picker {
+  border-color: #ff4d4f;
+}
+
+.edit-payment-form .ant-form-item-explain-error {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Loading states */
+.edit-payment-form .ant-btn-loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Focus states */
+.edit-payment-form .ant-input:focus,
+.edit-payment-form .ant-input-number:focus,
+.edit-payment-form .ant-picker:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Disabled states */
+.edit-payment-form .ant-input:disabled,
+.edit-payment-form .ant-input-number:disabled,
+.edit-payment-form .ant-picker:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}

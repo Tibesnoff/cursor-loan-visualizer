@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Divider, Tooltip } from 'antd';
+import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Divider, Tooltip, Alert } from 'antd';
 import { PrimaryButton, DangerButton } from '../ui/Button';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { addPayment } from '../../store/slices/paymentsSlice';
 import { createPayment, getRemainingBalanceForLoan } from '../../utils/dataUtils';
+import { isPaymentLate, getDaysLate, getPreviousPaymentDueDate } from '../../utils/loanInterestRules';
+import { normalizeLoanDates, applyPaymentToBalance } from '../../utils/consolidatedCalculations';
 import dayjs from 'dayjs';
 import './AddPaymentModal.css';
 
@@ -28,6 +30,7 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
     const { payments } = useAppSelector((state) => state.payments);
     const [loading, setLoading] = useState(false);
     const [selectedLoanId, setSelectedLoanId] = useState<string>('');
+    const [paymentDate, setPaymentDate] = useState<dayjs.Dayjs | null>(null);
 
     // Set preselected loan when modal opens
     useEffect(() => {
@@ -41,6 +44,11 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
     }, [visible, preselectedLoanId, form]);
 
     const selectedLoan = loans.find(loan => loan.id === selectedLoanId);
+
+    // Check if payment is late
+    const isLate = selectedLoan && paymentDate ? isPaymentLate(selectedLoan, paymentDate.toDate()) : false;
+    const daysLate = selectedLoan && paymentDate ? getDaysLate(selectedLoan, paymentDate.toDate()) : 0;
+    const expectedDueDate = selectedLoan && paymentDate ? getPreviousPaymentDueDate(selectedLoan, paymentDate.toDate()) : null;
 
     const handleSubmit = async (values: {
         loanId: string;
@@ -58,19 +66,65 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
             const paymentDate = values.paymentDate.toDate();
             const amount = values.amount;
 
-            // Calculate interest and principal amounts
-            const monthlyRate = selectedLoan.interestRate / 100 / 12;
-            const currentBalance = getRemainingBalanceForLoan(selectedLoan, payments);
-            const interestAmount = currentBalance * monthlyRate;
-            const principalAmount = Math.max(0, amount - interestAmount);
-            const newBalance = Math.max(0, currentBalance - principalAmount);
+            // Calculate interest and principal amounts using proper loan rules
+            // Don't use getRemainingBalanceForLoan as it might have incorrect data
+            // Instead, calculate the balance properly from the loan principal and all payments
+            const loanPayments = payments.filter(p => p.loanId === selectedLoan.id);
+            const sortedLoanPayments = loanPayments.sort((a, b) =>
+                new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
+            );
+
+            // Calculate the actual current balance by processing all payments
+            const normalizedLoan = normalizeLoanDates(selectedLoan);
+            let currentBalance = selectedLoan.principal;
+            let lastPaymentDate = normalizedLoan.interestStartDate;
+
+            for (const payment of sortedLoanPayments) {
+                const paymentResult = applyPaymentToBalance(
+                    currentBalance,
+                    payment,
+                    normalizedLoan,
+                    lastPaymentDate
+                );
+                currentBalance = paymentResult.newBalance;
+                lastPaymentDate = new Date(payment.paymentDate);
+            }
+
+            // Create a temporary payment object for calculation
+            const tempPayment = {
+                id: 'temp',
+                loanId: selectedLoan.id,
+                amount: amount,
+                principalPaid: 0,
+                interestPaid: 0,
+                paymentDate: paymentDate,
+                remainingBalance: 0,
+                isExtraPayment: false,
+                notes: '',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // Use the consolidated payment calculation logic
+            const paymentResult = applyPaymentToBalance(
+                currentBalance,
+                tempPayment,
+                normalizedLoan,
+                lastPaymentDate
+            );
+
+            const interestAmount = paymentResult.interestPaid;
+            const principalAmount = paymentResult.principalPaid;
+            const newBalance = paymentResult.newBalance;
+
+            console.log('Payment calculation result:', paymentResult);
+            console.log('Current balance before payment:', currentBalance);
+            console.log('Payment amount:', amount);
 
             // Determine if this is an extra payment
             const isExtraPayment = selectedLoan.minimumPayment
                 ? amount > selectedLoan.minimumPayment
-                : amount > (selectedLoan.termMonths > 0 ?
-                    (selectedLoan.principal * monthlyRate * Math.pow(1 + monthlyRate, selectedLoan.termMonths)) /
-                    (Math.pow(1 + monthlyRate, selectedLoan.termMonths) - 1) : 0);
+                : false; // For loans without minimum payments, we'll consider it extra if it's more than the calculated monthly payment
 
             const newPayment = createPayment(
                 selectedLoan.id,
@@ -160,6 +214,24 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
 
                 <Divider className="form-divider" />
 
+                {/* Late Payment Warning */}
+                {isLate && (
+                    <Alert
+                        message="Late Payment Detected"
+                        description={
+                            <div>
+                                <p>This payment is <strong>{daysLate} days late</strong>.</p>
+                                <p>Expected due date: <strong>{expectedDueDate?.toLocaleDateString()}</strong></p>
+                                <p>Additional interest may be charged for the late period.</p>
+                            </div>
+                        }
+                        type="warning"
+                        icon={<ExclamationCircleOutlined />}
+                        showIcon
+                        className="late-payment-warning"
+                    />
+                )}
+
                 <div className="form-row">
                     <Form.Item
                         name="amount"
@@ -213,6 +285,7 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
                             className="date-picker"
                             disabledDate={(current) => current && current.isAfter(dayjs(), 'day')}
                             defaultValue={dayjs()}
+                            onChange={(date) => setPaymentDate(date)}
                         />
                     </Form.Item>
                 </div>

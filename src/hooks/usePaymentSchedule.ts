@@ -1,8 +1,12 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { Loan, Payment } from '../types';
 import { useLoanCalculations } from './useLoanCalculations';
-import { calculateInterestBetweenDates } from '../utils/interestCalculations';
-import { calculateEffectiveStartingBalance } from '../utils/loanCalculationUtils';
+import {
+  normalizeLoanDates,
+  calculateInterestBetweenDates,
+  calculateEffectiveStartingBalance,
+  applyPaymentToBalance,
+} from '../utils/consolidatedCalculations';
 import {
   createStableArray,
   createCleanupFunction,
@@ -14,8 +18,12 @@ export const usePaymentSchedule = (
   loanPayments: Payment[],
   adjustedMonthlyPayment?: number
 ) => {
-  const { monthlyRate, paymentsStartDate, monthlyPaymentAmount } =
-    useLoanCalculations(loan, loanPayments);
+  const {
+    monthlyRate,
+    interestStartDate,
+    firstPaymentDueDate,
+    monthlyPaymentAmount,
+  } = useLoanCalculations(loan, loanPayments);
 
   // Use adjusted payment amount if provided, otherwise use calculated amount
   const effectiveMonthlyPayment =
@@ -62,41 +70,88 @@ export const usePaymentSchedule = (
 
     for (let month = 0; month <= maxIterations; month++) {
       if (month === 0) {
-        // For month 0, check if there are any payments on or before the payments start date
-        const startDatePayments = sortedPayments.filter((payment: Payment) => {
-          const paymentDate = new Date(payment.paymentDate);
-          const paymentsStart = new Date(paymentsStartDate);
-          return payment.loanId === loan.id && paymentDate <= paymentsStart;
-        });
+        // For month 0, check if there are any payments on or before the first payment due date
+        const firstDueDatePayments = sortedPayments.filter(
+          (payment: Payment) => {
+            const paymentDate = new Date(payment.paymentDate);
+            const firstDue = new Date(firstPaymentDueDate);
+            return payment.loanId === loan.id && paymentDate <= firstDue;
+          }
+        );
 
         let initialBalance = effectiveStartingBalance;
         let totalPaymentsThisMonth = 0;
         let totalInterestThisMonth = 0;
 
-        if (startDatePayments.length > 0) {
-          // Process all payments made on or before the payments start date
-          totalPaymentsThisMonth = startDatePayments.reduce(
+        if (firstDueDatePayments.length > 0) {
+          // Process all payments made on or before the first payment due date
+          totalPaymentsThisMonth = firstDueDatePayments.reduce(
             (sum: number, payment: Payment) => sum + payment.amount,
             0
           );
 
-          // No interest calculation needed - payments start date is the baseline
-          // All payments go to principal since no interest has accrued yet
-          const principalPayment = totalPaymentsThisMonth;
-          initialBalance = Math.max(0, initialBalance - principalPayment);
-          totalInterestThisMonth = 0; // No interest accrued before payments start
+          // Calculate interest from interestStartDate to each payment date
+          let totalInterestForPayments = 0;
+          let runningBalance = initialBalance;
+          let lastInterestDate = interestStartDate;
+
+          // Process payments in chronological order to calculate interest properly
+          const sortedFirstDueDatePayments = [...firstDueDatePayments].sort(
+            (a, b) =>
+              new Date(a.paymentDate).getTime() -
+              new Date(b.paymentDate).getTime()
+          );
+
+          for (const payment of sortedFirstDueDatePayments) {
+            const paymentDate = new Date(payment.paymentDate);
+
+            // Calculate interest from last date to this payment date
+            const interestOwed = calculateInterestBetweenDates(
+              runningBalance,
+              loan.interestRate,
+              lastInterestDate,
+              paymentDate,
+              loan.interestAccrualMethod
+            );
+
+            totalInterestForPayments += interestOwed;
+
+            // Apply payment: interest first, then principal
+            const interestPaid = Math.min(payment.amount, interestOwed);
+            const principalPaid = Math.max(0, payment.amount - interestPaid);
+
+            runningBalance = Math.max(0, runningBalance - principalPaid);
+            lastInterestDate = paymentDate;
+          }
+
+          totalInterestThisMonth = totalInterestForPayments;
+          initialBalance = runningBalance;
         } else if (effectiveMonthlyPayment > 0) {
-          // If no actual payments on or before start date, apply scheduled payment
-          // No interest calculation needed - payments start date is the baseline
-          totalInterestThisMonth = 0; // No interest accrued before payments start
-          const principalPayment = effectiveMonthlyPayment;
-          initialBalance = Math.max(0, initialBalance - principalPayment);
+          // If no actual payments on or before first due date, apply scheduled payment
+          // Calculate interest from interestStartDate to firstPaymentDueDate
+          const interestOwed = calculateInterestBetweenDates(
+            initialBalance,
+            loan.interestRate,
+            interestStartDate,
+            firstPaymentDueDate,
+            loan.interestAccrualMethod
+          );
+
+          totalInterestThisMonth = interestOwed;
+
+          // Apply payment: interest first, then principal
+          const interestPaid = Math.min(effectiveMonthlyPayment, interestOwed);
+          const principalPaid = Math.max(
+            0,
+            effectiveMonthlyPayment - interestPaid
+          );
+          initialBalance = Math.max(0, initialBalance - principalPaid);
         }
 
         // Calculate actual month and year for this data point
         const actualDate = new Date(
-          paymentsStartDate.getFullYear(),
-          paymentsStartDate.getMonth() + month,
+          firstPaymentDueDate.getFullYear(),
+          firstPaymentDueDate.getMonth() + month,
           1
         );
         const monthName = actualDate.toLocaleDateString('en-US', {
@@ -107,7 +162,15 @@ export const usePaymentSchedule = (
         // Calculate minimum payment balance for month 0 (always uses scheduled payment)
         let minimumPaymentBalanceMonth0 = effectiveStartingBalance;
         if (effectiveMonthlyPayment > 0) {
-          const interestOwed = minimumPaymentBalanceMonth0 * monthlyRate;
+          // Calculate interest from interestStartDate to firstPaymentDueDate
+          const interestOwed = calculateInterestBetweenDates(
+            minimumPaymentBalanceMonth0,
+            loan.interestRate,
+            interestStartDate,
+            firstPaymentDueDate,
+            loan.interestAccrualMethod
+          );
+
           const principalPayment = Math.max(
             0,
             effectiveMonthlyPayment - interestOwed
@@ -148,13 +211,13 @@ export const usePaymentSchedule = (
 
       // Get actual payments for this month
       const monthStart = new Date(
-        paymentsStartDate.getFullYear(),
-        paymentsStartDate.getMonth() + month,
+        firstPaymentDueDate.getFullYear(),
+        firstPaymentDueDate.getMonth() + month,
         1
       );
       const monthEnd = new Date(
-        paymentsStartDate.getFullYear(),
-        paymentsStartDate.getMonth() + month + 1,
+        firstPaymentDueDate.getFullYear(),
+        firstPaymentDueDate.getMonth() + month + 1,
         0
       );
 
@@ -225,8 +288,8 @@ export const usePaymentSchedule = (
 
       // Calculate actual month and year for this data point
       const actualDate = new Date(
-        paymentsStartDate.getFullYear(),
-        paymentsStartDate.getMonth() + month,
+        firstPaymentDueDate.getFullYear(),
+        firstPaymentDueDate.getMonth() + month,
         1
       );
       const monthName = actualDate.toLocaleDateString('en-US', {
@@ -260,7 +323,8 @@ export const usePaymentSchedule = (
     effectiveStartingBalance,
     monthlyRate,
     effectiveMonthlyPayment,
-    paymentsStartDate,
+    interestStartDate,
+    firstPaymentDueDate,
   ]);
 
   return paymentScheduleData;

@@ -1,32 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, DatePicker, Select, message, Tooltip, Checkbox } from 'antd';
 import { PrimaryButton, DangerButton } from '../ui/Button';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { addLoan } from '../../store/slices/loansSlice';
-import { createLoan } from '../../utils/dataUtils';
+import { useAppDispatch } from '../../hooks/redux';
+import { updateLoan } from '../../store/slices/loansSlice';
 import { getLoanTypesForForm } from '../../utils/loanUtils';
-import { LoanType, InterestAccrualMethod } from '../../types';
+import { Loan, LoanType, InterestAccrualMethod } from '../../types';
 import dayjs from 'dayjs';
 import './AddLoanModal.css';
 
 const { Option } = Select;
 
-interface AddLoanModalProps {
+interface EditLoanModalProps {
     visible: boolean;
     onCancel: () => void;
+    loan: Loan | null;
 }
 
-export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel }) => {
+export const EditLoanModal: React.FC<EditLoanModalProps> = ({ visible, onCancel, loan }) => {
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
-    const { currentUser } = useAppSelector((state) => state.user);
     const [loading, setLoading] = useState(false);
     const [selectedLoanType, setSelectedLoanType] = useState<string>('');
 
     const loanTypes = getLoanTypesForForm();
-
     const selectedType = loanTypes.find(type => type.value === selectedLoanType);
+
+    // Populate form when loan changes
+    useEffect(() => {
+        if (visible && loan) {
+            setSelectedLoanType(loan.loanType);
+            form.setFieldsValue({
+                name: loan.name,
+                loanType: loan.loanType,
+                principal: loan.principal,
+                interestRate: loan.interestRate,
+                termMonths: loan.termMonths,
+                disbursementDate: dayjs(loan.disbursementDate),
+                interestStartDate: dayjs(loan.interestStartDate),
+                firstPaymentDueDate: dayjs(loan.firstPaymentDueDate),
+                paymentFrequency: loan.paymentFrequency,
+                minimumPayment: loan.minimumPayment,
+                paymentDueDay: loan.paymentDueDay,
+                interestAccrualMethod: loan.interestAccrualMethod,
+                isSubsidized: loan.isSubsidized,
+                gracePeriodMonths: loan.gracePeriodMonths,
+            });
+        } else if (visible && !loan) {
+            form.resetFields();
+        }
+    }, [visible, loan, form]);
 
     const handleSubmit = async (values: {
         name: string;
@@ -44,8 +67,8 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
         isSubsidized?: boolean;
         gracePeriodMonths?: number;
     }) => {
-        if (!currentUser) {
-            message.error('Please create a user profile first');
+        if (!loan) {
+            message.error('No loan selected for editing');
             return;
         }
 
@@ -54,38 +77,33 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
             // Use the term if provided, otherwise set to 0 for loans without fixed terms
             const termMonths = values.termMonths || 0;
 
-            // All loans use monthly payments
-            const paymentFrequency = 'monthly';
-
             // Get minimum payment for loans that need it
             const minimumPayment = selectedType?.needsMinimumPayment ? values.minimumPayment : undefined;
 
-            const newLoan = createLoan(
-                currentUser.id,
-                values.name,
-                values.principal,
-                values.interestRate,
+            const updates: Partial<Loan> = {
+                name: values.name,
+                loanType: values.loanType as LoanType,
+                principal: values.principal,
+                interestRate: values.interestRate,
                 termMonths,
-                values.disbursementDate.toDate(),
-                paymentFrequency,
-                values.loanType as LoanType,
+                disbursementDate: values.disbursementDate.toDate(),
+                interestStartDate: values.interestStartDate.toDate(),
+                firstPaymentDueDate: values.firstPaymentDueDate.toDate(),
+                paymentFrequency: values.paymentFrequency as any,
                 minimumPayment,
-                values.paymentDueDay,
-                values.firstPaymentDueDate.toDate(),
-                values.interestAccrualMethod as InterestAccrualMethod,
-                values.isSubsidized,
-                values.interestStartDate.toDate(),
-                values.gracePeriodMonths
-            );
+                paymentDueDay: values.paymentDueDay,
+                interestAccrualMethod: values.interestAccrualMethod as InterestAccrualMethod,
+                isSubsidized: values.isSubsidized,
+                gracePeriodMonths: values.gracePeriodMonths,
+                updatedAt: new Date(),
+            };
 
-            dispatch(addLoan(newLoan));
-            message.success('Loan added successfully!');
-            form.resetFields();
-            setSelectedLoanType('');
+            dispatch(updateLoan({ id: loan.id, updates }));
+            message.success('Loan updated successfully!');
             onCancel();
         } catch (error) {
-            console.error('Error adding loan:', error);
-            message.error('Failed to add loan. Please check your input and try again.');
+            console.error('Error updating loan:', error);
+            message.error('Failed to update loan. Please check your input and try again.');
         } finally {
             setLoading(false);
         }
@@ -93,12 +111,17 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
 
     const handleCancel = () => {
         form.resetFields();
+        setSelectedLoanType('');
         onCancel();
     };
 
+    if (!loan) {
+        return null;
+    }
+
     return (
         <Modal
-            title="Add New Loan"
+            title="Edit Loan"
             open={visible}
             onCancel={handleCancel}
             footer={null}
@@ -310,7 +333,6 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                         <DatePicker
                             placeholder="Select disbursement date"
                             className="date-picker"
-                            defaultValue={dayjs()}
                         />
                     </Form.Item>
                     <Form.Item
@@ -367,7 +389,6 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                         }
                         rules={[{ required: true, message: 'Please select an interest accrual method' }]}
                         className="form-item-half"
-                        initialValue="daily"
                     >
                         <Select placeholder="Select accrual method">
                             <Option value="daily">Daily (Student Loans, Credit Cards)</Option>
@@ -390,7 +411,6 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                             }
                             valuePropName="checked"
                             className="form-item-half"
-                            initialValue={false}
                         >
                             <Checkbox>This is a subsidized loan</Checkbox>
                         </Form.Item>
@@ -408,7 +428,6 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                                 { type: 'number', min: 0, max: 24, message: 'Grace period must be between 0 and 24 months' }
                             ]}
                             className="form-item-half"
-                            initialValue={6}
                         >
                             <InputNumber
                                 placeholder="6"
@@ -428,7 +447,7 @@ export const AddLoanModal: React.FC<AddLoanModalProps> = ({ visible, onCancel })
                         htmlType="submit"
                         loading={loading}
                     >
-                        Add Loan
+                        Update Loan
                     </PrimaryButton>
                 </div>
             </Form>

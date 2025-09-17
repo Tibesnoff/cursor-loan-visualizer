@@ -47,13 +47,15 @@ export interface Loan {
   readonly principal: number;
   readonly interestRate: number; // Annual percentage rate
   readonly termMonths: number; // 0 for loans without fixed terms
-  readonly startDate: Date;
-  readonly paymentsStartDate?: Date; // When payments actually begin (can be different from startDate)
+  readonly disbursementDate: Date; // When the loan was disbursed/funded
+  readonly interestStartDate: Date; // When interest begins accruing (can be different from disbursementDate)
+  readonly firstPaymentDueDate: Date; // When the first payment is due
   readonly paymentFrequency: PaymentFrequency;
   readonly minimumPayment?: number; // Required for credit cards and student loans
   readonly paymentDueDay?: number; // Day of month when payment is due (1-31)
   readonly interestAccrualMethod: InterestAccrualMethod; // How interest is calculated
   readonly isSubsidized?: boolean; // For student loans - affects interest accrual during grace periods
+  readonly gracePeriodMonths?: number; // Grace period for student loans (typically 6 months)
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -106,13 +108,15 @@ export interface LoanFormData {
   readonly principal: number;
   readonly interestRate: number;
   readonly termMonths: number;
-  readonly startDate: Date;
-  readonly paymentsStartDate?: Date;
+  readonly disbursementDate: Date;
+  readonly interestStartDate: Date;
+  readonly firstPaymentDueDate: Date;
   readonly paymentFrequency: PaymentFrequency;
   readonly minimumPayment?: number;
   readonly paymentDueDay?: number;
   readonly interestAccrualMethod: InterestAccrualMethod;
   readonly isSubsidized?: boolean;
+  readonly gracePeriodMonths?: number;
 }
 
 export interface PaymentFormData {

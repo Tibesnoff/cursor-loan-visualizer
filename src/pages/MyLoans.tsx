@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Space, Tooltip, Popconfirm, message } from 'antd';
 import { PrimaryButton, DangerButton } from '../components/ui/Button';
-import { QuestionCircleOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { deleteLoan } from '../store/slices/loansSlice';
-import { AddLoanModal, AddPaymentModal, UserSetup } from '../components/forms';
+import { AddLoanModal, AddPaymentModal, EditLoanModal, UserSetup } from '../components/forms';
 import { LoanTypeBadge } from '../components/ui';
 import { Loan, LoanType } from '../types';
 import './MyLoans.css';
@@ -16,6 +16,8 @@ export const MyLoans: React.FC = () => {
     const dispatch = useAppDispatch();
     const [modalVisible, setModalVisible] = useState(false);
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
     const [userSetupVisible, setUserSetupVisible] = useState(false);
     const navigate = useNavigate();
 
@@ -48,6 +50,16 @@ export const MyLoans: React.FC = () => {
     const handleDeleteLoan = (loanId: string) => {
         dispatch(deleteLoan(loanId));
         message.success('Loan deleted successfully');
+    };
+
+    const handleEditLoan = (loan: Loan) => {
+        setSelectedLoan(loan);
+        setEditModalVisible(true);
+    };
+
+    const handleEditModalCancel = () => {
+        setEditModalVisible(false);
+        setSelectedLoan(null);
     };
 
     const handlePaymentModalCancel = () => {
@@ -179,6 +191,13 @@ export const MyLoans: React.FC = () => {
                     >
                         View
                     </PrimaryButton>
+                    <PrimaryButton
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={() => handleEditLoan(record)}
+                    >
+                        Edit
+                    </PrimaryButton>
                     <Popconfirm
                         title="Delete Loan"
                         description="Are you sure you want to delete this loan? This action cannot be undone."
@@ -255,6 +274,12 @@ export const MyLoans: React.FC = () => {
             <AddPaymentModal
                 visible={paymentModalVisible}
                 onCancel={handlePaymentModalCancel}
+            />
+
+            <EditLoanModal
+                visible={editModalVisible}
+                onCancel={handleEditModalCancel}
+                loan={selectedLoan}
             />
 
             <UserSetup

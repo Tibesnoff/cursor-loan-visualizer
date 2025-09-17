@@ -1,11 +1,12 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { Loan, Payment } from '../types';
-import { calculateInterestBetweenDates } from '../utils/interestCalculations';
 import {
+  normalizeLoanDates,
   calculateEffectiveStartingBalance,
   applyPaymentToBalance,
   calculateMonthlyPayment,
-} from '../utils/loanCalculationUtils';
+  processAllPayments,
+} from '../utils/consolidatedCalculations';
 import {
   createError,
   ErrorType,
@@ -60,18 +61,24 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     'useLoanCalculations'
   );
 
-  const loanStartDate = safeCalculate(
-    () => new Date(loan.startDate),
+  const disbursementDate = safeCalculate(
+    () => new Date(loan.disbursementDate),
     new Date(),
-    'Failed to parse loan start date',
+    'Failed to parse loan disbursement date',
     'useLoanCalculations'
   );
 
-  const paymentsStartDate = safeCalculate(
-    () =>
-      loan.paymentsStartDate ? new Date(loan.paymentsStartDate) : loanStartDate,
-    loanStartDate,
-    'Failed to parse payments start date',
+  const interestStartDate = safeCalculate(
+    () => new Date(loan.interestStartDate),
+    disbursementDate,
+    'Failed to parse interest start date',
+    'useLoanCalculations'
+  );
+
+  const firstPaymentDueDate = safeCalculate(
+    () => new Date(loan.firstPaymentDueDate),
+    disbursementDate,
+    'Failed to parse first payment due date',
     'useLoanCalculations'
   );
 
@@ -83,13 +90,13 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
   // Get payments for a specific month
   const getPaymentsForMonth = (monthIndex: number) => {
     const monthStart = new Date(
-      paymentsStartDate.getFullYear(),
-      paymentsStartDate.getMonth() + monthIndex,
+      firstPaymentDueDate.getFullYear(),
+      firstPaymentDueDate.getMonth() + monthIndex,
       1
     );
     const monthEnd = new Date(
-      paymentsStartDate.getFullYear(),
-      paymentsStartDate.getMonth() + monthIndex + 1,
+      firstPaymentDueDate.getFullYear(),
+      firstPaymentDueDate.getMonth() + monthIndex + 1,
       0
     );
 
@@ -103,16 +110,16 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     });
   };
 
-  // Get payments for the payments start date
-  const getStartDatePayments = () => {
+  // Get payments for the first payment due date
+  const getFirstPaymentDueDatePayments = () => {
     return loanPayments.filter(payment => {
       const paymentDate = new Date(payment.paymentDate);
-      const paymentsStart = new Date(paymentsStartDate);
+      const firstDue = new Date(firstPaymentDueDate);
       return (
         payment.loanId === loan.id &&
-        paymentDate.getFullYear() === paymentsStart.getFullYear() &&
-        paymentDate.getMonth() === paymentsStart.getMonth() &&
-        paymentDate.getDate() === paymentsStart.getDate()
+        paymentDate.getFullYear() === firstDue.getFullYear() &&
+        paymentDate.getMonth() === firstDue.getMonth() &&
+        paymentDate.getDate() === firstDue.getDate()
       );
     });
   };
@@ -133,55 +140,17 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     );
   }, [relevantPayments]);
 
-  // Calculate actual loan statistics with optimized dependencies
+  // Calculate actual loan statistics using consolidated logic
   const actualLoanStats = useMemo(() => {
-    const totalPaid = relevantPayments.reduce(
-      (sum, payment) => sum + payment.amount,
-      0
-    );
-
-    let balance = calculateEffectiveStartingBalance(loan);
-    let interestPaid = 0;
-    let principalPaid = 0;
-
-    let lastPaymentDate = paymentsStartDate;
-
-    // Process payments in chronological order
-    for (const payment of sortedPayments) {
-      const paymentResult = applyPaymentToBalance(
-        balance,
-        payment,
-        loan.interestRate,
-        loan.interestAccrualMethod,
-        lastPaymentDate
-      );
-
-      balance = paymentResult.newBalance;
-      interestPaid += paymentResult.interestPaid;
-      principalPaid += paymentResult.principalPaid;
-      lastPaymentDate = new Date(payment.paymentDate);
-    }
-
-    // Calculate interest accrued since the last payment up to today
-    const currentDate = new Date();
-    if (sortedPayments.length > 0) {
-      const interestSinceLastPayment = calculateInterestBetweenDates(
-        balance,
-        loan.interestRate,
-        lastPaymentDate,
-        currentDate,
-        loan.interestAccrualMethod
-      );
-      balance += interestSinceLastPayment;
-    }
+    const result = processAllPayments(loan, relevantPayments);
 
     return {
-      totalPaid,
-      principalPaid,
-      interestPaid,
-      remainingBalance: balance,
+      totalPaid: result.totalPaid,
+      principalPaid: result.totalPrincipalPaid,
+      interestPaid: result.totalInterestPaid,
+      remainingBalance: result.finalBalance,
     };
-  }, [loan, sortedPayments, paymentsStartDate, relevantPayments]);
+  }, [loan, relevantPayments]);
 
   // Calculate additional spent over minimum
   const additionalSpentOverMinimum = useMemo(() => {
@@ -199,8 +168,8 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     const currentDate = new Date();
     const monthsSinceStart = Math.max(
       1,
-      (currentDate.getFullYear() - paymentsStartDate.getFullYear()) * 12 +
-        (currentDate.getMonth() - paymentsStartDate.getMonth()) +
+      (currentDate.getFullYear() - firstPaymentDueDate.getFullYear()) * 12 +
+        (currentDate.getMonth() - firstPaymentDueDate.getMonth()) +
         1
     );
 
@@ -208,84 +177,55 @@ export const useLoanCalculations = (loan: Loan, loanPayments: Payment[]) => {
     const expectedMinimum = minimumAmount * monthsSinceStart;
 
     return Math.max(0, totalPaid - expectedMinimum);
-  }, [loanPayments, loan.id, monthlyPaymentAmount, paymentsStartDate]);
+  }, [loanPayments, loan.id, monthlyPaymentAmount, firstPaymentDueDate]);
 
   // Calculate last payment breakdown
   const lastPaymentBreakdown = useMemo(() => {
-    const relevantPayments = loanPayments.filter(
-      payment => payment.loanId === loan.id
-    );
-
     if (relevantPayments.length === 0) {
       return null;
     }
 
-    const sortedPayments = [...relevantPayments].sort(
-      (a, b) =>
-        new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
-    );
-
     const lastPayment = sortedPayments[sortedPayments.length - 1];
     const paymentsBeforeLast = sortedPayments.slice(0, -1);
 
-    let balanceBeforePayment = calculateEffectiveStartingBalance(loan);
-    let lastPaymentDate = paymentsStartDate;
+    // Calculate balance before the last payment
+    const beforeLastResult = processAllPayments(loan, paymentsBeforeLast);
+    const balanceBeforePayment = beforeLastResult.finalBalance;
 
-    paymentsBeforeLast.forEach(payment => {
-      const paymentResult = applyPaymentToBalance(
-        balanceBeforePayment,
-        payment,
-        loan.interestRate,
-        loan.interestAccrualMethod,
-        lastPaymentDate
-      );
+    // Calculate the last payment result
+    const normalizedLoan = normalizeLoanDates(loan);
+    const lastPaymentDate =
+      paymentsBeforeLast.length > 0
+        ? new Date(
+            paymentsBeforeLast[paymentsBeforeLast.length - 1].paymentDate
+          )
+        : normalizedLoan.interestStartDate;
 
-      balanceBeforePayment = paymentResult.newBalance;
-      lastPaymentDate = new Date(payment.paymentDate);
-    });
-
-    const paymentDate = new Date(lastPayment.paymentDate);
     const lastPaymentResult = applyPaymentToBalance(
       balanceBeforePayment,
       lastPayment,
-      loan.interestRate,
-      loan.interestAccrualMethod,
+      normalizedLoan,
       lastPaymentDate
     );
-
-    const interestPaid = lastPaymentResult.interestPaid;
-    const principalPaid = lastPaymentResult.principalPaid;
-    const balanceAfterPayment = lastPaymentResult.newBalance;
-
-    // Calculate interest accrued since the last payment up to today
-    const currentDate = new Date();
-    const interestSinceLastPayment = calculateInterestBetweenDates(
-      balanceAfterPayment,
-      loan.interestRate,
-      paymentDate,
-      currentDate,
-      loan.interestAccrualMethod
-    );
-
-    const currentBalance = balanceAfterPayment + interestSinceLastPayment;
 
     return {
       lastPayment,
       balanceBefore: balanceBeforePayment,
-      balanceAfter: balanceAfterPayment,
-      currentBalance: currentBalance,
-      interestPaid: interestPaid,
-      principalPaid: principalPaid,
+      balanceAfter: lastPaymentResult.newBalance,
+      currentBalance: lastPaymentResult.newBalance,
+      interestPaid: lastPaymentResult.interestPaid,
+      principalPaid: lastPaymentResult.principalPaid,
     };
-  }, [loan, loanPayments, paymentsStartDate]);
+  }, [loan, relevantPayments, sortedPayments]);
 
   return {
     monthlyRate,
-    loanStartDate,
-    paymentsStartDate,
+    disbursementDate,
+    interestStartDate,
+    firstPaymentDueDate,
     monthlyPaymentAmount,
     getPaymentsForMonth,
-    getStartDatePayments,
+    getFirstPaymentDueDatePayments,
     actualLoanStats,
     additionalSpentOverMinimum,
     lastPaymentBreakdown,

@@ -33,19 +33,25 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
                         <strong>Payment Frequency: </strong>
-                        <span>{loan.paymentFrequency.charAt(0).toUpperCase() + loan.paymentFrequency.slice(1)}</span>
+                        <span>{loan.paymentFrequency ? loan.paymentFrequency.charAt(0).toUpperCase() + loan.paymentFrequency.slice(1) : 'Monthly'}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Start Date: </strong>
-                        <span>{dayjs(loan.startDate).format('MMMM D, YYYY')}</span>
+                        <strong>Disbursement Date: </strong>
+                        <span>{dayjs(loan.disbursementDate).format('MMMM D, YYYY')}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
                     <div className="detail-item">
-                        <strong>Payments Started: </strong>
-                        <span>{loan.paymentsStartDate ? dayjs(loan.paymentsStartDate).format('MMMM D, YYYY') : dayjs(loan.startDate).format('MMMM D, YYYY')}</span>
+                        <strong>Interest Start Date: </strong>
+                        <span>{dayjs(loan.interestStartDate).format('MMMM D, YYYY')}</span>
+                    </div>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <div className="detail-item">
+                        <strong>First Payment Due: </strong>
+                        <span>{dayjs(loan.firstPaymentDueDate).format('MMMM D, YYYY')}</span>
                     </div>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
@@ -66,6 +72,22 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({
                         <span>{dayjs(loan.createdAt).format('MMMM DD, YYYY')}</span>
                     </div>
                 </Col>
+                {loan.loanType === 'student' && (
+                    <>
+                        <Col xs={24} sm={12} md={8}>
+                            <div className="detail-item">
+                                <strong>Subsidized: </strong>
+                                <span>{loan.isSubsidized ? 'Yes' : 'No'}</span>
+                            </div>
+                        </Col>
+                        <Col xs={24} sm={12} md={8}>
+                            <div className="detail-item">
+                                <strong>Grace Period: </strong>
+                                <span>{loan.gracePeriodMonths || 0} months</span>
+                            </div>
+                        </Col>
+                    </>
+                )}
             </Row>
         </Card>
     );
